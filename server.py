@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
 from backend.delhi_graph    import build_graph, NODES
 from backend.data_generator import generate_deliveries
-from backend.sorting        import sort_by_deadline
+from backend.sorting        import sort_by_deadline, sort_by_priority, sort_by_weight
 from backend.graph          import find_best_warehouse, dijkstra
 from backend.greedy         import select_van
 from backend.dp             import pack_van
@@ -74,8 +74,9 @@ def run():
     graph = build_graph()
 
     # Step 1 — generate & sort
-    raw      = generate_deliveries(n)
-    packages = sort_by_deadline(raw)
+    raw = generate_deliveries(n)
+    packages = sort_by_deadline(raw)       # merge sort — stable, earliest deadline first
+    packages = sort_by_priority(packages)  # heap sort — highest priority first within deadline order   
 
     # Step 2 — group by destination
     groups = group_by_destination(packages)
@@ -97,6 +98,7 @@ def run():
 
             w_rem = total_weight(remaining)
             van   = select_van(FLEET, w_rem)                      # Step 5 greedy
+            remaining = sort_by_weight(remaining)  # quick sort — lightest first, helps knapsack packing
             packed, leftover = pack_van(remaining, van["capacity"])  # Step 6 DP
 
             if not packed:           # single package > largest van
@@ -182,15 +184,24 @@ def steps():
     before_sort = [{"package_id": p["package_id"], "deadline": p["deadline"]} for p in raw[:8]]
     sorted_pkgs = sort_by_deadline(raw)
     after_sort  = [{"package_id": p["package_id"], "deadline": p["deadline"]} for p in sorted_pkgs[:8]]
+    priority_sorted = sort_by_priority(sorted_pkgs)
+    weight_sorted   = sort_by_weight(sorted_pkgs[:8])
+
     step2 = {
         "step": 2,
-        "title": "Sort by Deadline",
-        "algo": "Merge Sort",
-        "explanation": "Merge sort orders packages ascending by deadline — earliest deadlines dispatched first.",
+        "title": "Sort Packages — 3 Algorithms",
+        "algo": "Merge Sort → Heap Sort → Quick Sort",
+        "explanation": (
+            "Three sorts applied in sequence: "
+            "(1) Merge Sort by deadline — stable, preserves tie order. "
+            "(2) Heap Sort by priority — max-heap extracts most urgent first. "
+            "(3) Quick Sort by weight — random floats, stability not needed, cache-efficient."
+        ),
         "before": before_sort,
-        "after":  after_sort
+        "after": after_sort,
+        "priority_sorted": [{"package_id": p["package_id"], "priority": p["priority"]} for p in priority_sorted[:8]],
+        "weight_sorted":   [{"package_id": p["package_id"], "weight": p["weight"]}    for p in weight_sorted]
     }
-
     # ── Step 3: Group ─────────────────────────────────────────────────────────
     groups = group_by_destination(sorted_pkgs)
     group_summary = [

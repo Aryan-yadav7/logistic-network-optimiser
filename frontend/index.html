@@ -1073,22 +1073,60 @@
     }
 
     else if (s.step === 2) {
-      const rows = s.before.map((b, i) => {
-        const a = s.after[i];
-        const moved = b.package_id !== a.package_id;
-        return `<tr ${moved?'class="highlight"':''}>
-          <td>${b.package_id}</td><td>${b.deadline}h</td>
-          <td style="color:var(--muted)">→</td>
-          <td>${a.package_id}</td><td>${a.deadline}h</td>
-        </tr>`;
-      }).join('');
-      content.innerHTML = `
+  const deadlineRows = s.before.map((b, i) => {
+    const a = s.after[i];
+    const moved = b.package_id !== a.package_id;
+    return `<tr ${moved ? 'class="highlight"' : ''}>
+      <td>${b.package_id}</td><td>${b.deadline}h</td>
+      <td style="color:var(--muted)">→</td>
+      <td>${a.package_id}</td><td>${a.deadline}h</td>
+    </tr>`;
+  }).join('');
+
+  const priorityRows = (s.priority_sorted || []).map(p =>
+    `<tr><td>${p.package_id}</td><td style="color:var(--yellow)">${p.priority}</td></tr>`
+  ).join('');
+
+  const weightRows = (s.weight_sorted || []).map(p =>
+    `<tr><td>${p.package_id}</td><td style="color:var(--green)">${p.weight} kg</td></tr>`
+  ).join('');
+
+  content.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:2px;margin-bottom:8px">
+          MERGE SORT — BY DEADLINE
+        </div>
         <table class="step-table">
-          <thead><tr><th colspan="2">BEFORE</th><th></th><th colspan="2">AFTER (SORTED)</th></tr>
+          <thead><tr><th colspan="2">BEFORE</th><th></th><th colspan="2">AFTER</th></tr>
           <tr><th>PKG</th><th>DEADLINE</th><th></th><th>PKG</th><th>DEADLINE</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
-    }
+          <tbody>${deadlineRows}</tbody>
+        </table>
+      </div>
+
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--yellow);letter-spacing:2px;margin-bottom:8px">
+          HEAP SORT — BY PRIORITY (DESC)
+        </div>
+        <table class="step-table">
+          <thead><tr><th>PKG</th><th>PRIORITY</th></tr></thead>
+          <tbody>${priorityRows}</tbody>
+        </table>
+      </div>
+
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--green);letter-spacing:2px;margin-bottom:8px">
+          QUICK SORT — BY WEIGHT (ASC)
+        </div>
+        <table class="step-table">
+          <thead><tr><th>PKG</th><th>WEIGHT</th></tr></thead>
+          <tbody>${weightRows}</tbody>
+        </table>
+      </div>
+
+    </div>`;
+}
 
     else if (s.step === 3) {
       content.innerHTML = `

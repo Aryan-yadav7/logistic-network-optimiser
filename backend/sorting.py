@@ -95,3 +95,14 @@ def bubble_sort(arr, key):
             break
 
     return arr
+
+def sort_by_priority(packages):
+    """Heap sort — max priority first. Heap naturally models 'most urgent next'."""
+    arr = packages[:]
+    heap_sort(arr, key=lambda p: p["priority"])
+    return arr[::-1]  # heap_sort gives ascending, reverse for highest priority first
+
+def sort_by_weight(packages):
+    """Quick sort — ascending weight. Random float data, stability not needed."""
+    arr = packages[:]
+    return quick_sort(arr, key=lambda p: p["weight"])
