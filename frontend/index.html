@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delhi Logistics Pipeline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:         #080c10;
+      --bg2:        #0d1318;
+      --bg3:        #111820;
+      --border:     #1e2d3d;
+      --accent:     #f97316;
+      --accent2:    #0ea5e9;
+      --accent3:    #22d3ee;
+      --green:      #4ade80;
+      --yellow:     #fbbf24;
+      --text:       #e2e8f0;
+      --muted:      #64748b;
+      --card-glow:  0 0 30px rgba(249,115,22,0.07);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo 2', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grid bg ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(14,165,233,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,12,16,0.9);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 38px; height: 38px;
+      border: 2px solid var(--accent);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--accent);
+      position: relative;
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      background: rgba(249,115,22,0.1);
+    }
+
+    .logo-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .logo-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .status-pill {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      padding: 5px 14px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .status-pill.live {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .status-pill.live::before {
+      content: '● ';
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ── Main layout ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 48px 80px;
+    }
+
+    /* ── Control panel ── */
+    .control-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 40px;
+      padding: 28px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      box-shadow: var(--card-glow);
+    }
+
+    .field-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .field-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      outline: none;
+      margin-top: 10px;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .run-btn {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, filter 0.1s;
+      white-space: nowrap;
+    }
+
+    .run-btn.primary  { background: var(--accent); color: #000; }
+    .run-btn.secondary{ background: transparent; color: var(--accent2); border: 1px solid var(--accent2); }
+    .run-btn.secondary:hover { background: rgba(14,165,233,0.08); }
+    .run-btn.primary:hover   { filter: brightness(1.1); }
+    .run-btn:active          { transform: translateY(1px); }
+    .run-btn:disabled {
+      background: var(--border) !important;
+      color: var(--muted) !important;
+      border-color: var(--border) !important;
+      cursor: not-allowed; transform: none;
+    }
+
+    /* ── Step-through panel ── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      background: var(--bg2); flex-wrap: wrap;
+    }
+
+    .step-dot {
+      width: 28px; height: 28px; border: 1px solid var(--border);
+      display: grid; place-items: center;
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      color: var(--muted); cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    }
+    .step-dot.done   { border-color: var(--green);  color: var(--green);  background: rgba(74,222,128,0.08); }
+    .step-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(249,115,22,0.1);  }
+
+    .step-connector { flex:1; height:1px; background: var(--border); min-width:10px; }
+
+    .step-body { padding: 24px; }
+
+    .step-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; margin-bottom: 20px; gap: 16px;
+    }
+    .step-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
+    .step-algo-badge {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      padding: 4px 12px; border: 1px solid var(--accent); color: var(--accent);
+      letter-spacing: 1px; white-space: nowrap; margin-top: 4px;
+    }
+
+    .step-explanation {
+      font-family: 'Share Tech Mono', monospace; font-size: 11px;
+      color: var(--accent2); padding: 10px 14px;
+      border-left: 2px solid var(--accent2); background: rgba(14,165,233,0.05);
+      margin-bottom: 20px; line-height: 1.7;
+    }
+
+    .step-content { font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+
+    .step-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    .step-table th {
+      text-align: left; padding: 6px 10px; font-size: 9px;
+      letter-spacing: 1.5px; color: var(--muted); border-bottom: 1px solid var(--border);
+    }
+    .step-table td { padding: 7px 10px; border-bottom: 1px solid rgba(30,45,61,0.5); font-size: 11px; color: var(--text); }
+    .step-table tr.highlight td { background: rgba(249,115,22,0.07); color: var(--accent); }
+    .step-table tr.packed   td  { background: rgba(74,222,128,0.05);  color: var(--green); }
+    .step-table tr.leftover td  { color: var(--muted); }
+
+    .step-tag { display: inline-block; padding: 2px 8px; font-size: 9px; letter-spacing:1px; border: 1px solid var(--border); margin: 2px; }
+    .step-tag.fit   { border-color: var(--green);  color: var(--green); }
+    .step-tag.nofit { border-color: var(--muted);  color: var(--muted); }
+    .step-tag.sel   { border-color: var(--accent); color: var(--accent); background: rgba(249,115,22,0.1); }
+
+    .step-route { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .step-route-node { padding: 6px 14px; border: 1px solid var(--accent3); color: var(--accent3); font-size: 11px; }
+    .step-route-arrow { color: var(--muted); }
+
+    .step-controls {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; border-top: 1px solid var(--border); background: var(--bg3);
+    }
+    .step-counter { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+
+    .step-btn {
+      font-family: 'Rajdhani', sans-serif; font-weight: 700;
+      font-size: 13px; letter-spacing: 2px; padding: 9px 22px; border: none; cursor: pointer; transition: filter 0.1s;
+    }
+    .step-btn.prev     { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
+    .step-btn.next     { background: var(--accent2); color: #000; }
+    .step-btn.done-btn { background: var(--green); color: #000; }
+    .step-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .step-btn:not(:disabled):hover { filter: brightness(1.15); }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      padding: 20px 24px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .stat-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+    }
+
+    .stat-card.orange::before { background: var(--accent); }
+    .stat-card.blue::before   { background: var(--accent2); }
+    .stat-card.cyan::before   { background: var(--accent3); }
+    .stat-card.green::before  { background: var(--green); }
+
+    .stat-num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-card.orange .stat-num { color: var(--accent); }
+    .stat-card.blue   .stat-num { color: var(--accent2); }
+    .stat-card.cyan   .stat-num { color: var(--accent3); }
+    .stat-card.green  .stat-num { color: var(--green); }
+
+    .stat-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── Content grid ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    /* ── Dispatch table ── */
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+    }
+
+    .panel-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .panel-count {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Trip cards ── */
+    .trips-container {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 640px;
+      overflow-y: auto;
+    }
+
+    .trips-container::-webkit-scrollbar { width: 4px; }
+    .trips-container::-webkit-scrollbar-track { background: transparent; }
+    .trips-container::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .trip-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.2s;
+    }
+
+    .trip-card.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .trip-card:hover {
+      border-color: rgba(249,115,22,0.3);
+    }
+
+    .trip-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .trip-id {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .van-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      padding: 3px 10px;
+      border: 1px solid;
+      letter-spacing: 1px;
+    }
+
+    .van-badge.Small  { border-color: var(--green);   color: var(--green); }
+    .van-badge.Medium { border-color: var(--yellow);  color: var(--yellow); }
+    .van-badge.Large  { border-color: var(--accent);  color: var(--accent); }
+
+    .trip-dest {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .trip-route {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .trip-route .arrow { color: var(--accent2); }
+    .trip-route .node  { color: var(--accent3); }
+
+    .trip-meta {
+      display: flex;
+      gap: 20px;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+
+    .meta-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .meta-key {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .load-bar {
+      height: 2px;
+      background: var(--border);
+      margin-top: 10px;
+      position: relative;
+    }
+
+    .load-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0;
+      transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .bonus-tag {
+      display: inline-block;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      padding: 2px 8px;
+      background: rgba(14,165,233,0.1);
+      border: 1px solid rgba(14,165,233,0.3);
+      color: var(--accent2);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    /* ── Van fleet sidebar ── */
+    .fleet-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .van-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 20px 22px;
+      opacity: 0;
+      transform: translateX(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .van-card.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .van-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .van-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .van-name.Small  { color: var(--green); }
+    .van-name.Medium { color: var(--yellow); }
+    .van-name.Large  { color: var(--accent); }
+
+    .van-trips {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .van-stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .van-stat-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .van-stat-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── Log panel ── */
+    .log-panel {
+      margin-top: 24px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+    }
+
+    .log-body {
+      padding: 16px 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      line-height: 1.9;
+      max-height: 200px;
+      overflow-y: auto;
+      color: var(--muted);
+    }
+
+    .log-body::-webkit-scrollbar { width: 4px; }
+    .log-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .log-line.ok   { color: var(--green); }
+    .log-line.info { color: var(--accent2); }
+    .log-line.warn { color: var(--yellow); }
+    .log-line.err  { color: #f87171; }
+
+    /* ── Empty / loading state ── */
+    .empty-state {
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    .empty-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Pkg list ── */
+    .pkg-list {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .pkg-chip {
+      padding: 2px 6px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">▲</div>
+    <div>
+      <div class="logo-text">DelhiRoute</div>
+      <div class="logo-sub">LOGISTICS PIPELINE v1.0</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill" id="statusPill">IDLE</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Control panel -->
+  <div class="control-panel">
+    <div>
+      <div class="field-label">Packages to generate</div>
+      <div class="field-value" id="pkgCount">20</div>
+      <input type="range" id="pkgSlider" min="5" max="60" value="20"
+             oninput="document.getElementById('pkgCount').textContent = this.value"/>
+    </div>
+    <div>
+      <div class="field-label">Fleet</div>
+      <div class="field-value" style="color:var(--accent2)">3 VANS</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px">
+        S:30kg &nbsp; M:60kg &nbsp; L:100kg
+      </div>
+    </div>
+    <div>
+      <div class="field-label">Warehouses</div>
+      <div class="field-value" style="color:var(--green)">5 NODES</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px">
+        AUTO-SELECT VIA DIJKSTRA
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="run-btn primary" id="runBtn" onclick="runPipeline()">
+        ▶ &nbsp; SHOW RESULT
+      </button>
+      <button class="run-btn secondary" id="stepBtn" onclick="runStepThrough()">
+        ◈ &nbsp; STEP BY STEP
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card orange" id="statTrips">
+      <div class="stat-num" id="numTrips">—</div>
+      <div class="stat-label">Total Trips</div>
+    </div>
+    <div class="stat-card blue" id="statPkgs">
+      <div class="stat-num" id="numPkgs">—</div>
+      <div class="stat-label">Packages Shipped</div>
+    </div>
+    <div class="stat-card cyan" id="statKg">
+      <div class="stat-num" id="numKg">—</div>
+      <div class="stat-label">KG Dispatched</div>
+    </div>
+    <div class="stat-card green" id="statBonus">
+      <div class="stat-num" id="numBonus">—</div>
+      <div class="stat-label">Bonus Stops</div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="content-grid">
+
+    <!-- Result mode -->
+    <div class="panel" id="resultPanel">
+      <div class="panel-header">
+        <div class="panel-title">Dispatch Log</div>
+        <div class="panel-count" id="tripCount">0 trips</div>
+      </div>
+      <div class="trips-container" id="tripsContainer">
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <div class="empty-text">AWAITING DISPATCH ORDER</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step-through mode -->
+    <div class="panel step-panel" id="stepPanel">
+      <!-- step nav dots -->
+      <div class="step-nav" id="stepNav"></div>
+      <!-- step content -->
+      <div class="step-body" id="stepBody">
+        <div class="empty-state">
+          <div class="empty-icon">◈</div>
+          <div class="empty-text">LOADING STEPS...</div>
+        </div>
+      </div>
+      <!-- prev / next -->
+      <div class="step-controls">
+        <button class="step-btn prev" id="prevBtn" onclick="changeStep(-1)" disabled>◀ PREV</button>
+        <span class="step-counter" id="stepCounter">— / —</span>
+        <button class="step-btn next" id="nextBtn" onclick="changeStep(1)">NEXT ▶</button>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="fleet-panel" id="fleetPanel">
+      <div class="van-card" id="vanSmall">
+        <div class="van-header">
+          <div class="van-name Small">SMALL VAN</div>
+          <div class="van-trips" id="tripsSmall">0</div>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">CAPACITY</span>
+          <span class="van-stat-val">30 kg</span>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">TRIPS USED</span>
+          <span class="van-stat-val" id="usedSmall">0</span>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">KG CARRIED</span>
+          <span class="van-stat-val" id="kgSmall">0</span>
+        </div>
+      </div>
+      <div class="van-card" id="vanMedium">
+        <div class="van-header">
+          <div class="van-name Medium">MEDIUM VAN</div>
+          <div class="van-trips" id="tripsMedium">0</div>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">CAPACITY</span>
+          <span class="van-stat-val">60 kg</span>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">TRIPS USED</span>
+          <span class="van-stat-val" id="usedMedium">0</span>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">KG CARRIED</span>
+          <span class="van-stat-val" id="kgMedium">0</span>
+        </div>
+      </div>
+      <div class="van-card" id="vanLarge">
+        <div class="van-header">
+          <div class="van-name Large">LARGE VAN</div>
+          <div class="van-trips" id="tripsLarge">0</div>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">CAPACITY</span>
+          <span class="van-stat-val">100 kg</span>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">TRIPS USED</span>
+          <span class="van-stat-val" id="usedLarge">0</span>
+        </div>
+        <div class="van-stat-row">
+          <span class="van-stat-label">KG CARRIED</span>
+          <span class="van-stat-val" id="kgLarge">0</span>
+        </div>
+      </div>
+
+      <!-- Log panel inside sidebar -->
+      <div class="log-panel">
+        <div class="panel-header">
+          <div class="panel-title">System Log</div>
+        </div>
+        <div class="log-body" id="logBody">
+          <div class="log-line">> system ready</div>
+          <div class="log-line">> awaiting dispatch command...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const VAN_CAP = { Small: 30, Medium: 60, Large: 100 };
+  const vanStats = { Small: { trips:0, kg:0 }, Medium: { trips:0, kg:0 }, Large: { trips:0, kg:0 } };
+
+  // ── step-through state ──────────────────────────────────────────────────────
+  let allSteps    = [];
+  let currentStep = 0;
+
+  // ── utils ──────────────────────────────────────────────────────────────────
+  function log(msg, type='') {
+    const lb = document.getElementById('logBody');
+    const d  = document.createElement('div');
+    d.className = 'log-line ' + type;
+    d.textContent = '> ' + msg;
+    lb.appendChild(d);
+    lb.scrollTop = lb.scrollHeight;
+  }
+
+  function setStatus(text, live=false) {
+    const p = document.getElementById('statusPill');
+    p.textContent = text;
+    p.className = 'status-pill' + (live ? ' live' : '');
+  }
+
+  function resetStats() {
+    Object.keys(vanStats).forEach(k => { vanStats[k].trips = 0; vanStats[k].kg = 0; });
+    ['Small','Medium','Large'].forEach(v => {
+      document.getElementById('trips'+v).textContent = '0';
+      document.getElementById('used'+v).textContent  = '0';
+      document.getElementById('kg'+v).textContent    = '0';
+    });
+    ['numTrips','numPkgs','numKg','numBonus'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('visible'));
+    document.querySelectorAll('.van-card').forEach(c => c.classList.remove('visible'));
+  }
+
+  function setBothBtnsDisabled(val) {
+    document.getElementById('runBtn').disabled  = val;
+    document.getElementById('stepBtn').disabled = val;
+  }
+
+  // ── show result mode ────────────────────────────────────────────────────────
+  function showResultPanel() {
+    document.getElementById('resultPanel').style.display = 'block';
+    document.getElementById('stepPanel').classList.remove('active');
+  }
+
+  function showStepPanel() {
+    document.getElementById('resultPanel').style.display = 'none';
+    document.getElementById('stepPanel').classList.add('active');
+  }
+
+  // ── trip card render ────────────────────────────────────────────────────────
+  function renderTrip(trip, idx) {
+    const delay = idx * 80;
+    const pct   = Math.min(100, Math.round((trip.load / VAN_CAP[trip.van]) * 100));
+    const routeParts = trip.route_nodes.map((nid, i) =>
+      `<span class="node">${trip.route_names[i]}</span>`
+    ).join(' <span class="arrow">→</span> ');
+    const pkgChips  = trip.packages.map(p => `<span class="pkg-chip">${p}</span>`).join('');
+    const bonusTag  = trip.has_bonus ? `<div class="bonus-tag">+ BONUS STOP: ${trip.bonus_name}</div>` : '';
+    const card = document.createElement('div');
+    card.className = 'trip-card';
+    card.innerHTML = `
+      <div class="trip-top">
+        <span class="trip-id">TRIP-${String(idx+1).padStart(3,'0')}</span>
+        <span class="van-badge ${trip.van}">${trip.van.toUpperCase()}</span>
+      </div>
+      ${bonusTag}
+      <div class="trip-dest">${trip.destination}</div>
+      <div class="trip-route">${routeParts}</div>
+      <div class="trip-meta">
+        <div class="meta-item"><span class="meta-val">${trip.load} kg</span><span class="meta-key">LOAD</span></div>
+        <div class="meta-item"><span class="meta-val">${trip.distance} km</span><span class="meta-key">DISTANCE</span></div>
+        <div class="meta-item"><span class="meta-val">${trip.packages.length}</span><span class="meta-key">PKGS</span></div>
+        <div class="meta-item"><span class="meta-val">${pct}%</span><span class="meta-key">CAPACITY</span></div>
+      </div>
+      <div class="load-bar">
+        <div class="load-fill" id="lf-${idx}" style="background:${
+          trip.van==='Small'?'var(--green)':trip.van==='Medium'?'var(--yellow)':'var(--accent)'
+        }"></div>
+      </div>
+      <div class="pkg-list">${pkgChips}</div>`;
+    document.getElementById('tripsContainer').appendChild(card);
+    setTimeout(() => {
+      card.classList.add('visible');
+      setTimeout(() => { const lf=document.getElementById('lf-'+idx); if(lf) lf.style.width=pct+'%'; }, 200);
+    }, delay);
+  }
+
+  function updateVanStats(trip) {
+    const v = trip.van;
+    vanStats[v].trips++;
+    vanStats[v].kg += trip.load;
+    document.getElementById('trips'+v).textContent = vanStats[v].trips;
+    document.getElementById('used'+v).textContent  = vanStats[v].trips;
+    document.getElementById('kg'+v).textContent    = Math.round(vanStats[v].kg * 10) / 10;
+  }
+
+  // ── SHOW RESULT ─────────────────────────────────────────────────────────────
+  async function runPipeline() {
+    const btn = document.getElementById('runBtn');
+    const n   = document.getElementById('pkgSlider').value;
+    setBothBtnsDisabled(true);
+    btn.innerHTML = '<span class="spinner"></span> LOADING...';
+    setStatus('PROCESSING', true);
+    showResultPanel();
+    resetStats();
+    document.getElementById('tripsContainer').innerHTML = '';
+    document.getElementById('logBody').innerHTML = '';
+    document.getElementById('tripCount').textContent = '0 trips';
+    log('pipeline initiated', 'info');
+    try {
+      const res  = await fetch(`/run?n=${n}`);
+      const data = await res.json();
+      if (data.error) { log('ERROR: '+data.error,'err'); setStatus('ERROR'); setBothBtnsDisabled(false); btn.innerHTML='▶ &nbsp; SHOW RESULT'; return; }
+      log(`${data.packages_generated} packages generated`,'ok');
+      log(`${data.destinations} unique destinations`,'ok');
+      log('routing via dijkstra...','info');
+      log('packing vans via knapsack DP...','info');
+      log('finding bonus stops via divide & conquer...','info');
+      const trips = data.trips;
+      let totalBonus=0, totalKg=0, totalPkgs=0;
+      trips.forEach((trip, i) => {
+        renderTrip(trip, i);
+        updateVanStats(trip);
+        if (trip.has_bonus) totalBonus++;
+        totalKg   += trip.load;
+        totalPkgs += trip.packages.length;
+      });
+      document.getElementById('tripCount').textContent = trips.length + ' trips';
+      setTimeout(() => {
+        document.getElementById('numTrips').textContent = trips.length;
+        document.getElementById('numPkgs').textContent  = totalPkgs;
+        document.getElementById('numKg').textContent    = Math.round(totalKg);
+        document.getElementById('numBonus').textContent = totalBonus;
+        document.querySelectorAll('.stat-card').forEach((c,i) => setTimeout(()=>c.classList.add('visible'),i*80));
+        document.querySelectorAll('.van-card').forEach((c,i)  => setTimeout(()=>c.classList.add('visible'),i*100));
+      }, 200);
+      log(`dispatched ${trips.length} trips`,'ok');
+      log(`total shipped: ${Math.round(totalKg)} kg`,'ok');
+      log(`bonus stops added: ${totalBonus}`,'ok');
+      log('pipeline complete ✓','ok');
+      setStatus('COMPLETE');
+    } catch(err) {
+      log('fetch error: '+err.message,'err'); setStatus('ERROR');
+    }
+    setBothBtnsDisabled(false);
+    btn.innerHTML = '▶ &nbsp; SHOW RESULT';
+  }
+
+  // ── STEP THROUGH ─────────────────────────────────────────────────────────────
+  async function runStepThrough() {
+    const btn = document.getElementById('stepBtn');
+    const n   = document.getElementById('pkgSlider').value;
+    setBothBtnsDisabled(true);
+    btn.innerHTML = '<span class="spinner"></span> LOADING...';
+    setStatus('LOADING STEPS', true);
+    showStepPanel();
+    resetStats();
+    document.getElementById('logBody').innerHTML = '';
+    try {
+      const res  = await fetch(`/steps?n=${n}`);
+      allSteps   = await res.json();
+      currentStep = 0;
+      buildStepNav();
+      renderStep(0);
+      setStatus('STEP MODE');
+    } catch(err) {
+      log('fetch error: '+err.message,'err'); setStatus('ERROR');
+    }
+    setBothBtnsDisabled(false);
+    btn.innerHTML = '◈ &nbsp; STEP BY STEP';
+  }
+
+  function buildStepNav() {
+    const nav = document.getElementById('stepNav');
+    nav.innerHTML = '';
+    allSteps.forEach((s, i) => {
+      if (i > 0) {
+        const conn = document.createElement('div');
+        conn.className = 'step-connector';
+        nav.appendChild(conn);
+      }
+      const dot = document.createElement('div');
+      dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+      dot.id = 'dot-' + i;
+      dot.textContent = i + 1;
+      dot.title = s.title;
+      dot.onclick = () => { currentStep = i; renderStep(i); };
+      nav.appendChild(dot);
+    });
+  }
+
+  function updateStepNav(idx) {
+    allSteps.forEach((_, i) => {
+      const dot = document.getElementById('dot-' + i);
+      if (!dot) return;
+      dot.className = 'step-dot' + (i < idx ? ' done' : i === idx ? ' active' : '');
+    });
+  }
+
+  function changeStep(dir) {
+    const next = currentStep + dir;
+    if (next < 0 || next >= allSteps.length) return;
+    currentStep = next;
+    renderStep(currentStep);
+  }
+
+  function renderStep(idx) {
+    const s    = allSteps[idx];
+    const last = idx === allSteps.length - 1;
+
+    updateStepNav(idx);
+    document.getElementById('stepCounter').textContent = `STEP ${idx+1} / ${allSteps.length}`;
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = last;
+    document.getElementById('nextBtn').className = last ? 'step-btn done-btn' : 'step-btn next';
+    document.getElementById('nextBtn').textContent = last ? 'DONE ✓' : 'NEXT ▶';
+
+    const body = document.getElementById('stepBody');
+    body.innerHTML = `
+      <div class="step-header">
+        <div class="step-title">Step ${s.step} — ${s.title}</div>
+        <div class="step-algo-badge">${s.algo}</div>
+      </div>
+      <div class="step-explanation">${s.explanation}</div>
+      <div class="step-content" id="stepContent"></div>`;
+
+    const content = document.getElementById('stepContent');
+
+    // ── per-step renderers ────────────────────────────────────────────────────
+    if (s.step === 1) {
+      content.innerHTML = `
+        <table class="step-table">
+          <thead><tr><th>PACKAGE</th><th>WEIGHT</th><th>DEADLINE (h)</th><th>PRIORITY</th><th>DEST NODE</th></tr></thead>
+          <tbody>${s.data.map(p=>`<tr>
+            <td>${p.package_id}</td><td>${p.weight} kg</td>
+            <td>${p.deadline}</td><td>${p.priority}</td><td>${p.dest_node}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px">Showing first ${s.data.length} of all packages</div>`;
+    }
+
+    else if (s.step === 2) {
+      const rows = s.before.map((b, i) => {
+        const a = s.after[i];
+        const moved = b.package_id !== a.package_id;
+        return `<tr ${moved?'class="highlight"':''}>
+          <td>${b.package_id}</td><td>${b.deadline}h</td>
+          <td style="color:var(--muted)">→</td>
+          <td>${a.package_id}</td><td>${a.deadline}h</td>
+        </tr>`;
+      }).join('');
+      content.innerHTML = `
+        <table class="step-table">
+          <thead><tr><th colspan="2">BEFORE</th><th></th><th colspan="2">AFTER (SORTED)</th></tr>
+          <tr><th>PKG</th><th>DEADLINE</th><th></th><th>PKG</th><th>DEADLINE</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    else if (s.step === 3) {
+      content.innerHTML = `
+        <table class="step-table">
+          <thead><tr><th>DESTINATION</th><th>NODE</th><th>PACKAGES</th><th>TOTAL WEIGHT</th></tr></thead>
+          <tbody>${s.groups.map(g=>`<tr>
+            <td>${g.dest_name}</td><td>${g.dest_node}</td>
+            <td>${g.count}</td><td>${g.total_weight} kg</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    else if (s.step === 4) {
+      content.innerHTML = `
+        <div style="margin-bottom:12px;color:var(--muted);font-size:10px">
+          DESTINATION: <span style="color:var(--accent3)">${s.destination}</span>
+        </div>
+        <table class="step-table">
+          <thead><tr><th>WAREHOUSE</th><th>DISTANCE</th><th>STATUS</th></tr></thead>
+          <tbody>${s.warehouse_distances.map(w=>`
+            <tr class="${w.warehouse_name===s.selected.warehouse_name?'highlight':''}">
+              <td>${w.warehouse_name}</td>
+              <td>${w.reachable ? w.distance+' km' : '∞'}</td>
+              <td>${w.warehouse_name===s.selected.warehouse_name
+                  ? '<span style="color:var(--green)">✓ SELECTED</span>'
+                  : w.reachable ? '—' : '<span style="color:var(--muted)">UNREACHABLE</span>'}</td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    else if (s.step === 5) {
+      content.innerHTML = `
+        <div style="margin-bottom:14px;font-size:10px;color:var(--muted)">
+          DESTINATION WEIGHT: <span style="color:var(--accent)">${s.total_weight} kg</span>
+        </div>
+        <div style="margin-bottom:10px">
+          ${s.van_checks.map(v => `
+            <span class="step-tag ${v.van===s.selected?'sel':v.fits?'fit':'nofit'}">
+              ${v.van} (${v.capacity}kg) ${v.van===s.selected?'← SELECTED':v.fits?'✓ fits':'✗'}
+            </span>`).join('')}
+        </div>`;
+    }
+
+    else if (s.step === 6) {
+      const packedRows   = s.packed.map(p=>`<tr class="packed"><td>${p.package_id}</td><td>${p.weight} kg</td><td>✓ packed</td></tr>`).join('');
+      const leftoverRows = s.leftover.map(p=>`<tr class="leftover"><td>${p.package_id}</td><td>${p.weight} kg</td><td>next van</td></tr>`).join('');
+      content.innerHTML = `
+        <div style="display:flex;gap:24px;margin-bottom:12px;font-size:10px">
+          <span>VAN CAPACITY: <span style="color:var(--accent)">${s.van_capacity} kg</span></span>
+          <span>PACKED: <span style="color:var(--green)">${s.packed_weight} kg</span></span>
+          <span>LEFTOVER: <span style="color:var(--muted)">${s.leftover_weight} kg</span></span>
+        </div>
+        <table class="step-table">
+          <thead><tr><th>PACKAGE</th><th>WEIGHT</th><th>STATUS</th></tr></thead>
+          <tbody>${packedRows}${leftoverRows}</tbody>
+        </table>`;
+    }
+
+    else if (s.step === 7) {
+      content.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px">
+          <div style="padding:16px;border:1px solid var(--border)">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">PRIMARY STOP</div>
+            <div style="color:var(--accent3);font-size:13px">${s.primary_node}</div>
+          </div>
+          <div style="padding:16px;border:1px solid var(--accent2);background:rgba(14,165,233,0.05)">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">BONUS STOP FOUND</div>
+            <div style="color:var(--accent2);font-size:13px">${s.bonus_node || 'None'}</div>
+          </div>
+          <div style="padding:16px;border:1px solid var(--border)">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">REMAINING CAPACITY</div>
+            <div style="color:var(--green);font-size:13px">${s.remaining_capacity} kg</div>
+          </div>
+        </div>`;
+    }
+
+    else if (s.step === 8) {
+      const routeHtml = s.route_names.map((name, i) =>
+        (i > 0 ? '<span class="step-route-arrow">→</span>' : '') +
+        `<span class="step-route-node">${name}</span>`
+      ).join('');
+      content.innerHTML = `
+        <div class="step-route">${routeHtml}</div>
+        <div style="display:flex;gap:24px;margin-top:20px;font-size:10px">
+          <span>DISTANCE: <span style="color:var(--accent)">${s.distance} km</span></span>
+          <span>LOAD: <span style="color:var(--green)">${s.load} kg</span></span>
+          <span>PACKAGES: <span style="color:var(--accent2)">${s.packages.join(', ')}</span></span>
+        </div>`;
+    }
+  }
+</script>
+</body>
+</html>
