@@ -1,1222 +1,1246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Delhi Logistics Pipeline</title>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <title>DelhiDash · Dispatch Centre</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --bg:         #080c10;
-      --bg2:        #0d1318;
-      --bg3:        #111820;
-      --border:     #1e2d3d;
-      --accent:     #f97316;
-      --accent2:    #0ea5e9;
-      --accent3:    #22d3ee;
-      --green:      #4ade80;
-      --yellow:     #fbbf24;
-      --text:       #e2e8f0;
-      --muted:      #64748b;
-      --card-glow:  0 0 30px rgba(249,115,22,0.07);
+      --bg:         #F7F5F0;
+      --white:      #FFFFFF;
+      --ink:        #12100E;
+      --ink2:       #3D3A35;
+      --ink3:       #8C8880;
+      --border:     #E2DED7;
+      --border2:    #CCC8C0;
+
+      --accent:     #5B21B6;      /* deep violet */
+      --accent-l:   #EDE9FE;
+      --accent-m:   #C4B5FD;
+      --green:      #059669;
+      --green-l:    #D1FAE5;
+      --red:        #DC2626;
+      --red-l:      #FEE2E2;
+      --amber:      #D97706;
+      --amber-l:    #FEF3C7;
+      --blue:       #1D4ED8;
+      --blue-l:     #DBEAFE;
+
+      /* Priority palette */
+      --p1: #DC2626; --p1-l: #FEE2E2;
+      --p2: #D97706; --p2-l: #FEF3C7;
+      --p3: #2563EB; --p3-l: #DBEAFE;
+      --p4: #059669; --p4-l: #D1FAE5;
+      --p5: #6B7280; --p5-l: #F3F4F6;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
       background: var(--bg);
-      color: var(--text);
-      font-family: 'Exo 2', sans-serif;
-      font-weight: 300;
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-family: 'Syne', sans-serif;
+      color: var(--ink);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* ── Grid bg ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(14,165,233,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(14,165,233,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ── Header ── */
-    header {
-      position: relative;
-      z-index: 10;
-      padding: 28px 48px;
+    /* ── Top bar ── */
+    .topbar {
+      height: 52px;
+      background: var(--ink);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: rgba(8,12,16,0.9);
-      backdrop-filter: blur(12px);
+      padding: 0 24px;
+      gap: 0;
+      flex-shrink: 0;
+      border-bottom: 2px solid var(--accent);
     }
 
     .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-right: 32px;
     }
 
-    .logo-icon {
-      width: 38px; height: 38px;
-      border: 2px solid var(--accent);
+    .logo em { color: var(--accent-m); font-style: normal; }
+
+    .topbar-tabs { display: flex; align-items: stretch; gap: 0; flex: 1; }
+
+    .topbar-tab {
+      padding: 0 18px;
+      height: 52px;
+      display: flex; align-items: center;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer; text-decoration: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s;
+    }
+
+    .topbar-tab:hover { color: rgba(255,255,255,0.75); }
+    .topbar-tab.active { color: #fff; border-bottom-color: var(--accent-m); }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .live-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(5,150,105,0.15);
+      border: 1px solid rgba(5,150,105,0.4);
+      padding: 4px 10px; border-radius: 20px;
+    }
+
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    .live-label { font-size: 10px; font-weight: 700; color: var(--green); letter-spacing: 1px; }
+
+    .clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px;
+    }
+
+    /* ── Main layout — left panel + map ── */
+    .workspace {
+      flex: 1;
       display: grid;
-      place-items: center;
-      font-size: 18px;
-      color: var(--accent);
-      position: relative;
+      grid-template-columns: 440px 1fr;
+      overflow: hidden;
     }
 
-    .logo-icon::after {
-      content: '';
-      position: absolute;
-      inset: 3px;
-      background: rgba(249,115,22,0.1);
-    }
-
-    .logo-text {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--text);
-    }
-
-    .logo-sub {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      margin-top: 2px;
-    }
-
-    .header-right {
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: var(--white);
+      border-right: 1px solid var(--border);
       display: flex;
-      align-items: center;
-      gap: 24px;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    .status-pill {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      padding: 5px 14px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      letter-spacing: 1px;
+    /* ── Control strip ── */
+    .control-strip {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      flex-shrink: 0;
     }
 
-    .status-pill.live {
-      border-color: var(--green);
-      color: var(--green);
+    .ctrl-top {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
     }
 
-    .status-pill.live::before {
-      content: '● ';
-      animation: blink 1.2s infinite;
+    .ctrl-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--ink3);
     }
 
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-    /* ── Main layout ── */
-    main {
-      position: relative;
-      z-index: 1;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 40px 48px 80px;
-    }
-
-    /* ── Control panel ── */
-    .control-panel {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 16px;
-      align-items: end;
-      margin-bottom: 40px;
-      padding: 28px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      box-shadow: var(--card-glow);
-    }
-
-    .field-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .field-value {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: 1px;
+    .n-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px; font-weight: 600; color: var(--accent);
+      margin-right: 4px;
     }
 
     input[type=range] {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 2px;
-      background: var(--border);
-      outline: none;
-      margin-top: 10px;
+      flex: 1;
+      -webkit-appearance: none; appearance: none;
+      height: 3px; background: var(--border2); outline: none; cursor: pointer;
+      border-radius: 2px;
     }
 
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 16px; height: 16px;
-      background: var(--accent);
-      cursor: pointer;
-      border: 2px solid var(--bg);
-    }
-
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(91,33,182,0.3);
     }
 
     .run-btn {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 12px 24px;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.1s, filter 0.1s;
-      white-space: nowrap;
+      width: 100%;
+      padding: 13px;
+      background: var(--accent); color: #fff;
+      border: none; cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+      border-radius: 8px;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
 
-    .run-btn.primary  { background: var(--accent); color: #000; }
-    .run-btn.secondary{ background: transparent; color: var(--accent2); border: 1px solid var(--accent2); }
-    .run-btn.secondary:hover { background: rgba(14,165,233,0.08); }
-    .run-btn.primary:hover   { filter: brightness(1.1); }
-    .run-btn:active          { transform: translateY(1px); }
-    .run-btn:disabled {
-      background: var(--border) !important;
-      color: var(--muted) !important;
-      border-color: var(--border) !important;
-      cursor: not-allowed; transform: none;
+    .run-btn:hover { background: #4C1D95; transform: translateY(-1px); }
+    .run-btn:disabled { background: var(--accent-m); cursor: not-allowed; transform: none; }
+
+    .btn-spin {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.6s linear infinite;
     }
-
-    /* ── Step-through panel ── */
-    .step-panel { display: none; }
-    .step-panel.active { display: block; }
-
-    .step-nav {
-      display: flex; align-items: center; gap: 12px;
-      padding: 16px 24px; border-bottom: 1px solid var(--border);
-      background: var(--bg2); flex-wrap: wrap;
-    }
-
-    .step-dot {
-      width: 28px; height: 28px; border: 1px solid var(--border);
-      display: grid; place-items: center;
-      font-family: 'Share Tech Mono', monospace; font-size: 10px;
-      color: var(--muted); cursor: pointer; transition: all 0.2s; flex-shrink: 0;
-    }
-    .step-dot.done   { border-color: var(--green);  color: var(--green);  background: rgba(74,222,128,0.08); }
-    .step-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(249,115,22,0.1);  }
-
-    .step-connector { flex:1; height:1px; background: var(--border); min-width:10px; }
-
-    .step-body { padding: 24px; }
-
-    .step-header {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; margin-bottom: 20px; gap: 16px;
-    }
-    .step-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
-    .step-algo-badge {
-      font-family: 'Share Tech Mono', monospace; font-size: 10px;
-      padding: 4px 12px; border: 1px solid var(--accent); color: var(--accent);
-      letter-spacing: 1px; white-space: nowrap; margin-top: 4px;
-    }
-
-    .step-explanation {
-      font-family: 'Share Tech Mono', monospace; font-size: 11px;
-      color: var(--accent2); padding: 10px 14px;
-      border-left: 2px solid var(--accent2); background: rgba(14,165,233,0.05);
-      margin-bottom: 20px; line-height: 1.7;
-    }
-
-    .step-content { font-family: 'Share Tech Mono', monospace; font-size: 11px; }
-
-    .step-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-    .step-table th {
-      text-align: left; padding: 6px 10px; font-size: 9px;
-      letter-spacing: 1.5px; color: var(--muted); border-bottom: 1px solid var(--border);
-    }
-    .step-table td { padding: 7px 10px; border-bottom: 1px solid rgba(30,45,61,0.5); font-size: 11px; color: var(--text); }
-    .step-table tr.highlight td { background: rgba(249,115,22,0.07); color: var(--accent); }
-    .step-table tr.packed   td  { background: rgba(74,222,128,0.05);  color: var(--green); }
-    .step-table tr.leftover td  { color: var(--muted); }
-
-    .step-tag { display: inline-block; padding: 2px 8px; font-size: 9px; letter-spacing:1px; border: 1px solid var(--border); margin: 2px; }
-    .step-tag.fit   { border-color: var(--green);  color: var(--green); }
-    .step-tag.nofit { border-color: var(--muted);  color: var(--muted); }
-    .step-tag.sel   { border-color: var(--accent); color: var(--accent); background: rgba(249,115,22,0.1); }
-
-    .step-route { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .step-route-node { padding: 6px 14px; border: 1px solid var(--accent3); color: var(--accent3); font-size: 11px; }
-    .step-route-arrow { color: var(--muted); }
-
-    .step-controls {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 24px; border-top: 1px solid var(--border); background: var(--bg3);
-    }
-    .step-counter { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
-
-    .step-btn {
-      font-family: 'Rajdhani', sans-serif; font-weight: 700;
-      font-size: 13px; letter-spacing: 2px; padding: 9px 22px; border: none; cursor: pointer; transition: filter 0.1s;
-    }
-    .step-btn.prev     { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
-    .step-btn.next     { background: var(--accent2); color: #000; }
-    .step-btn.done-btn { background: var(--green); color: #000; }
-    .step-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .step-btn:not(:disabled):hover { filter: brightness(1.15); }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Stats row ── */
     .stats-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 40px;
-    }
-
-    .stat-card {
-      padding: 20px 24px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      position: relative;
-      overflow: hidden;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-
-    .stat-card.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 3px; height: 100%;
-    }
-
-    .stat-card.orange::before { background: var(--accent); }
-    .stat-card.blue::before   { background: var(--accent2); }
-    .stat-card.cyan::before   { background: var(--accent3); }
-    .stat-card.green::before  { background: var(--green); }
-
-    .stat-num {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 36px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .stat-card.orange .stat-num { color: var(--accent); }
-    .stat-card.blue   .stat-num { color: var(--accent2); }
-    .stat-card.cyan   .stat-num { color: var(--accent3); }
-    .stat-card.green  .stat-num { color: var(--green); }
-
-    .stat-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    /* ── Content grid ── */
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
-    }
-
-    /* ── Dispatch table ── */
-    .panel {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-    }
-
-    .panel-header {
-      padding: 16px 24px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-shrink: 0;
     }
 
-    .panel-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--text);
+    .stat-cell {
+      padding: 12px 16px;
+      border-right: 1px solid var(--border);
     }
 
-    .panel-count {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
+    .stat-cell:last-child { border-right: none; }
+    .stat-key { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ink3); margin-bottom: 4px; }
+    .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; color: var(--ink); }
+    .stat-val.v { color: var(--accent); }
+    .stat-val.g { color: var(--green); }
+
+    /* ── Queue header ── */
+    .queue-header {
+      padding: 10px 20px 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
     }
 
-    /* ── Trip cards ── */
-    .trips-container {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 640px;
+    .queue-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink3); }
+
+    .queue-sub { font-size: 10px; color: var(--ink3); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Order list ── */
+    .order-list {
+      flex: 1;
       overflow-y: auto;
     }
 
-    .trips-container::-webkit-scrollbar { width: 4px; }
-    .trips-container::-webkit-scrollbar-track { background: transparent; }
-    .trips-container::-webkit-scrollbar-thumb { background: var(--border); }
+    .order-list::-webkit-scrollbar { width: 3px; }
+    .order-list::-webkit-scrollbar-thumb { background: var(--border2); }
 
-    .trip-card {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      padding: 16px 18px;
-      opacity: 0;
-      transform: translateX(-8px);
-      transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.2s;
+    /* Priority divider */
+    .p-divider {
+      padding: 6px 20px 4px;
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
     }
 
-    .trip-card.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .trip-card:hover {
-      border-color: rgba(249,115,22,0.3);
-    }
-
-    .trip-top {
-      display: flex;
+    /* Order row */
+    .order-item {
+      display: grid;
+      grid-template-columns: 24px 48px 1fr 56px 60px;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .trip-id {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-      letter-spacing: 1px;
-    }
-
-    .van-badge {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      padding: 3px 10px;
-      border: 1px solid;
-      letter-spacing: 1px;
-    }
-
-    .van-badge.Small  { border-color: var(--green);   color: var(--green); }
-    .van-badge.Medium { border-color: var(--yellow);  color: var(--yellow); }
-    .van-badge.Large  { border-color: var(--accent);  color: var(--accent); }
-
-    .trip-dest {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    .trip-route {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 10px;
-    }
-
-    .trip-route .arrow { color: var(--accent2); }
-    .trip-route .node  { color: var(--accent3); }
-
-    .trip-meta {
-      display: flex;
-      gap: 20px;
-    }
-
-    .meta-item { display: flex; flex-direction: column; gap: 2px; }
-
-    .meta-val {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .meta-key {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 1px;
-    }
-
-    .load-bar {
-      height: 2px;
-      background: var(--border);
-      margin-top: 10px;
+      gap: 10px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
       position: relative;
     }
 
-    .load-fill {
-      height: 100%;
+    .order-item:hover { background: var(--bg); }
+    .order-item.active-order { background: var(--accent-l); }
+    .order-item.done-order   { opacity: 0.45; }
+
+    .order-item.active-order::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
       background: var(--accent);
-      width: 0;
-      transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
     }
 
-    .bonus-tag {
+    .order-item.done-order::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--green);
+    }
+
+    .p-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    .order-id-col {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; color: var(--ink3);
+    }
+
+    .order-dest-col {
+      font-size: 12px; font-weight: 600; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .order-meta-col {
+      font-size: 10px; color: var(--ink3); line-height: 1.4;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .order-status-col {
+      text-align: right;
+    }
+
+    .o-badge {
       display: inline-block;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
-      padding: 2px 8px;
-      background: rgba(14,165,233,0.1);
-      border: 1px solid rgba(14,165,233,0.3);
-      color: var(--accent2);
-      letter-spacing: 1px;
-      margin-bottom: 6px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+      padding: 2px 7px; border-radius: 4px;
     }
 
-    /* ── Van fleet sidebar ── */
-    .fleet-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .ob-waiting    { background: var(--bg); color: var(--ink3); border: 1px solid var(--border2); }
+    .ob-packing    { background: var(--amber-l); color: var(--amber); }
+    .ob-enroute    { background: var(--accent-l); color: var(--accent); }
+    .ob-traffic    { background: var(--red-l); color: var(--red); }
+    .ob-rerouting  { background: var(--amber-l); color: var(--amber); }
+    .ob-delivered  { background: var(--green-l); color: var(--green); }
+
+    /* ── Active order detail ── */
+    .active-detail {
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--white);
     }
 
-    .van-card {
-      background: var(--bg2);
+    .detail-header {
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink3); }
+
+    /* Progress stepper */
+    .stepper {
+      display: flex; align-items: center;
+      padding: 14px 20px 10px;
+      gap: 0;
+    }
+
+    .step-node {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; flex: 0 0 auto;
+    }
+
+    .step-circle {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid var(--border2);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: var(--ink3);
+      transition: all 0.35s;
+    }
+
+    .step-circle.s-done   { background: var(--green); border-color: var(--green); color: #fff; }
+    .step-circle.s-active { background: var(--accent); border-color: var(--accent); color: #fff; animation: pulse-step 2s infinite; }
+
+    @keyframes pulse-step {
+      0%,100% { box-shadow: 0 0 0 0 rgba(91,33,182,0.3); }
+      50%      { box-shadow: 0 0 0 6px rgba(91,33,182,0); }
+    }
+
+    .step-lbl { font-size: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink3); text-align: center; }
+    .step-lbl.sl-done   { color: var(--green); }
+    .step-lbl.sl-active { color: var(--accent); }
+
+    .step-bar { flex: 1; height: 2px; background: var(--border2); margin-bottom: 14px; transition: background 0.4s; }
+    .step-bar.done { background: var(--green); }
+
+    /* Info grid */
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .info-cell {
+      padding: 10px 20px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-cell:nth-child(2n) { border-right: none; }
+
+    .ic-key { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink3); margin-bottom: 3px; }
+    .ic-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .ic-val.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+    /* Traffic alert strip */
+    .traffic-strip {
+      background: var(--red-l);
+      border-top: 2px solid var(--red);
+      padding: 10px 20px;
+      display: none;
+      animation: slide-in 0.25s ease;
+    }
+
+    .traffic-strip.visible { display: block; }
+
+    @keyframes slide-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+
+    .ts-title { font-size: 12px; font-weight: 700; color: var(--red); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .ts-body  { font-size: 11px; color: #7F1D1D; line-height: 1.5; }
+
+    .reroute-strip {
+      background: var(--green-l);
+      border-top: 2px solid var(--green);
+      padding: 10px 20px;
+      display: none;
+      animation: slide-in 0.25s ease;
+    }
+
+    .reroute-strip.visible { display: block; }
+    .rs-title { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+    .rs-body  { font-size: 11px; color: #065F46; line-height: 1.5; }
+
+    /* ── RIGHT — MAP ── */
+    .map-panel {
+      position: relative;
+      background: #E8E4DE;
+    }
+
+    #deliveryMap {
+      width: 100%; height: 100%;
+    }
+
+    /* Map overlay top-right: route chain */
+    .map-overlay {
+      position: absolute;
+      top: 16px; right: 16px;
+      z-index: 1000;
+      background: rgba(255,255,255,0.96);
       border: 1px solid var(--border);
-      padding: 20px 22px;
-      opacity: 0;
-      transform: translateX(8px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      border-radius: 10px;
+      padding: 14px 16px;
+      min-width: 220px;
+      max-width: 280px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: none;
     }
 
-    .van-card.visible {
-      opacity: 1;
-      transform: translateX(0);
+    .map-overlay.visible { display: block; }
+
+    .mo-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--ink3); margin-bottom: 10px;
     }
 
-    .van-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
+    .route-chain {
+      display: flex; flex-direction: column; gap: 0;
     }
 
-    .van-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 2px;
+    .rc-node {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 0;
+      opacity: 0.35;
+      transition: opacity 0.3s;
     }
 
-    .van-name.Small  { color: var(--green); }
-    .van-name.Medium { color: var(--yellow); }
-    .van-name.Large  { color: var(--accent); }
+    .rc-node.rc-visited { opacity: 1; }
+    .rc-node.rc-current { opacity: 1; }
+    .rc-node.rc-rerouted { opacity: 1; }
 
-    .van-trips {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text);
+    .rc-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 2px solid var(--border2);
+      background: var(--white); flex-shrink: 0;
+      transition: all 0.3s;
     }
 
-    .van-stat-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
+    .rc-node.rc-visited .rc-dot  { background: var(--green);  border-color: var(--green); }
+    .rc-node.rc-current .rc-dot  { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-l); }
+    .rc-node.rc-rerouted .rc-dot { background: var(--amber);  border-color: var(--amber); }
+
+    .rc-name { font-size: 11px; font-weight: 600; color: var(--ink2); }
+    .rc-node.rc-current .rc-name { color: var(--accent); }
+
+    .rc-tag {
+      margin-left: auto; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
     }
 
-    .van-stat-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
+    .rc-connector {
+      width: 2px; height: 10px; margin-left: 3px;
+      background: var(--border); border-radius: 1px;
     }
 
-    .van-stat-val {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
+    .rc-reroute-label {
+      font-size: 9px; font-weight: 700; color: var(--amber);
+      letter-spacing: 0.5px; padding: 4px 0 2px;
     }
 
-    /* ── Log panel ── */
-    .log-panel {
-      margin-top: 24px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
+    /* Map bottom overlay: live status */
+    .map-status-bar {
+      position: absolute;
+      bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 1000;
+      background: var(--ink);
+      border-radius: 30px;
+      padding: 10px 20px;
+      display: none;
+      align-items: center; gap: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+      white-space: nowrap;
     }
 
-    .log-body {
-      padding: 16px 20px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      line-height: 1.9;
-      max-height: 200px;
-      overflow-y: auto;
-      color: var(--muted);
+    .map-status-bar.visible { display: flex; }
+
+    .msb-item {
+      display: flex; align-items: center; gap: 6px;
     }
 
-    .log-body::-webkit-scrollbar { width: 4px; }
-    .log-body::-webkit-scrollbar-thumb { background: var(--border); }
+    .msb-label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.5px; }
+    .msb-val   { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 500; }
 
-    .log-line.ok   { color: var(--green); }
-    .log-line.info { color: var(--accent2); }
-    .log-line.warn { color: var(--yellow); }
-    .log-line.err  { color: #f87171; }
+    .msb-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.15); }
 
-    /* ── Empty / loading state ── */
-    .empty-state {
-      padding: 60px 24px;
-      text-align: center;
-      color: var(--muted);
+    .msb-van {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
     }
 
-    .empty-icon {
-      font-size: 40px;
-      margin-bottom: 16px;
-      opacity: 0.3;
+    /* Leaflet tooltip */
+    .leaflet-tooltip.tt-custom {
+      background: var(--ink) !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 6px !important;
+      font-family: 'Syne', sans-serif !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      padding: 4px 9px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
     }
 
-    .empty-text {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
+    .leaflet-tooltip.tt-custom::before { display: none !important; }
+
+    /* empty state */
+    .map-empty {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      z-index: 999; pointer-events: none;
     }
 
-    .spinner {
-      display: inline-block;
-      width: 20px; height: 20px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Pkg list ── */
-    .pkg-list {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .pkg-chip {
-      padding: 2px 6px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-    }
+    .map-empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+    .map-empty-text { font-size: 14px; font-weight: 600; color: var(--ink3); }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-icon">▲</div>
-    <div>
-      <div class="logo-text">DelhiRoute</div>
-      <div class="logo-sub">LOGISTICS PIPELINE v1.0</div>
-    </div>
+<!-- ── Top bar ── -->
+<div class="topbar">
+  <div class="logo">Delhi<em>Dash</em></div>
+  <div class="topbar-tabs">
+    <a href="/"           class="topbar-tab active">Dispatch Centre</a>
+    <a href="/operations" class="topbar-tab">Operations</a>
   </div>
-  <div class="header-right">
-    <div class="status-pill" id="statusPill">IDLE</div>
+  <div class="topbar-right">
+    <div class="live-pill">
+      <div class="live-dot"></div>
+      <div class="live-label">LIVE</div>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
   </div>
-</header>
+</div>
 
-<main>
+<!-- ── Workspace ── -->
+<div class="workspace">
 
-  <!-- Control panel -->
-  <div class="control-panel">
-    <div>
-      <div class="field-label">Packages to generate</div>
-      <div class="field-value" id="pkgCount">20</div>
-      <input type="range" id="pkgSlider" min="5" max="60" value="20"
-             oninput="document.getElementById('pkgCount').textContent = this.value"/>
-    </div>
-    <div>
-      <div class="field-label">Fleet</div>
-      <div class="field-value" style="color:var(--accent2)">3 VANS</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px">
-        S:30kg &nbsp; M:60kg &nbsp; L:100kg
+  <!-- ── LEFT PANEL ── -->
+  <div class="left-panel">
+
+    <!-- Control strip -->
+    <div class="control-strip">
+      <div class="ctrl-top">
+        <div class="ctrl-label">Orders to process</div>
+        <span class="n-badge" id="nVal">16</span>
+        <input type="range" id="nSlider" min="8" max="36" value="16"
+               oninput="document.getElementById('nVal').textContent=this.value"/>
       </div>
-    </div>
-    <div>
-      <div class="field-label">Warehouses</div>
-      <div class="field-value" style="color:var(--green)">5 NODES</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px">
-        AUTO-SELECT VIA DIJKSTRA
-      </div>
-    </div>
-    <div class="btn-group">
-      <button class="run-btn primary" id="runBtn" onclick="runPipeline()">
-        ▶ &nbsp; SHOW RESULT
-      </button>
-      <button class="run-btn secondary" id="stepBtn" onclick="runStepThrough()">
-        ◈ &nbsp; STEP BY STEP
+      <button class="run-btn" id="runBtn" onclick="startSession()">
+        ▶ &nbsp; LOAD &amp; DISPATCH ORDERS
       </button>
     </div>
-  </div>
 
-  <!-- Stats row -->
-  <div class="stats-row" id="statsRow">
-    <div class="stat-card orange" id="statTrips">
-      <div class="stat-num" id="numTrips">—</div>
-      <div class="stat-label">Total Trips</div>
-    </div>
-    <div class="stat-card blue" id="statPkgs">
-      <div class="stat-num" id="numPkgs">—</div>
-      <div class="stat-label">Packages Shipped</div>
-    </div>
-    <div class="stat-card cyan" id="statKg">
-      <div class="stat-num" id="numKg">—</div>
-      <div class="stat-label">KG Dispatched</div>
-    </div>
-    <div class="stat-card green" id="statBonus">
-      <div class="stat-num" id="numBonus">—</div>
-      <div class="stat-label">Bonus Stops</div>
-    </div>
-  </div>
-
-  <!-- Main content -->
-  <div class="content-grid">
-
-    <!-- Result mode -->
-    <div class="panel" id="resultPanel">
-      <div class="panel-header">
-        <div class="panel-title">Dispatch Log</div>
-        <div class="panel-count" id="tripCount">0 trips</div>
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-key">Total Orders</div>
+        <div class="stat-val v" id="sTot">—</div>
       </div>
-      <div class="trips-container" id="tripsContainer">
-        <div class="empty-state">
-          <div class="empty-icon">📦</div>
-          <div class="empty-text">AWAITING DISPATCH ORDER</div>
-        </div>
+      <div class="stat-cell">
+        <div class="stat-key">Delivered</div>
+        <div class="stat-val g" id="sDone">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-key">Remaining</div>
+        <div class="stat-val" id="sRem">—</div>
       </div>
     </div>
 
-    <!-- Step-through mode -->
-    <div class="panel step-panel" id="stepPanel">
-      <!-- step nav dots -->
-      <div class="step-nav" id="stepNav"></div>
-      <!-- step content -->
-      <div class="step-body" id="stepBody">
-        <div class="empty-state">
-          <div class="empty-icon">◈</div>
-          <div class="empty-text">LOADING STEPS...</div>
-        </div>
-      </div>
-      <!-- prev / next -->
-      <div class="step-controls">
-        <button class="step-btn prev" id="prevBtn" onclick="changeStep(-1)" disabled>◀ PREV</button>
-        <span class="step-counter" id="stepCounter">— / —</span>
-        <button class="step-btn next" id="nextBtn" onclick="changeStep(1)">NEXT ▶</button>
+    <!-- Queue header -->
+    <div class="queue-header">
+      <div class="queue-title">Sorted Queue</div>
+      <div class="queue-sub" id="queueSub">Priority → Deadline</div>
+    </div>
+
+    <!-- Order list -->
+    <div class="order-list" id="orderList">
+      <div style="padding:40px 20px;text-align:center;color:var(--ink3);font-size:12px;">
+        Load orders to see the sorted queue
       </div>
     </div>
 
-    <!-- Sidebar -->
-    <div class="fleet-panel" id="fleetPanel">
-      <div class="van-card" id="vanSmall">
-        <div class="van-header">
-          <div class="van-name Small">SMALL VAN</div>
-          <div class="van-trips" id="tripsSmall">0</div>
-        </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">CAPACITY</span>
-          <span class="van-stat-val">30 kg</span>
-        </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">TRIPS USED</span>
-          <span class="van-stat-val" id="usedSmall">0</span>
-        </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">KG CARRIED</span>
-          <span class="van-stat-val" id="kgSmall">0</span>
-        </div>
+    <!-- Active order detail -->
+    <div class="active-detail" id="activeDetail" style="display:none">
+
+      <div class="detail-header">
+        <div class="detail-title" id="detailTitle">Active Order</div>
+        <div class="o-badge ob-enroute" id="detailBadge">En Route</div>
       </div>
-      <div class="van-card" id="vanMedium">
-        <div class="van-header">
-          <div class="van-name Medium">MEDIUM VAN</div>
-          <div class="van-trips" id="tripsMedium">0</div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="step-node">
+          <div class="step-circle" id="sp1">1</div>
+          <div class="step-lbl"   id="sl1">Placed</div>
         </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">CAPACITY</span>
-          <span class="van-stat-val">60 kg</span>
+        <div class="step-bar" id="sb1"></div>
+        <div class="step-node">
+          <div class="step-circle" id="sp2">2</div>
+          <div class="step-lbl"   id="sl2">Packed</div>
         </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">TRIPS USED</span>
-          <span class="van-stat-val" id="usedMedium">0</span>
+        <div class="step-bar" id="sb2"></div>
+        <div class="step-node">
+          <div class="step-circle" id="sp3">3</div>
+          <div class="step-lbl"   id="sl3">Sent</div>
         </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">KG CARRIED</span>
-          <span class="van-stat-val" id="kgMedium">0</span>
+        <div class="step-bar" id="sb3"></div>
+        <div class="step-node">
+          <div class="step-circle" id="sp4">4</div>
+          <div class="step-lbl"   id="sl4">Moving</div>
         </div>
-      </div>
-      <div class="van-card" id="vanLarge">
-        <div class="van-header">
-          <div class="van-name Large">LARGE VAN</div>
-          <div class="van-trips" id="tripsLarge">0</div>
-        </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">CAPACITY</span>
-          <span class="van-stat-val">100 kg</span>
-        </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">TRIPS USED</span>
-          <span class="van-stat-val" id="usedLarge">0</span>
-        </div>
-        <div class="van-stat-row">
-          <span class="van-stat-label">KG CARRIED</span>
-          <span class="van-stat-val" id="kgLarge">0</span>
+        <div class="step-bar" id="sb4"></div>
+        <div class="step-node">
+          <div class="step-circle" id="sp5">✓</div>
+          <div class="step-lbl"   id="sl5">Done</div>
         </div>
       </div>
 
-      <!-- Log panel inside sidebar -->
-      <div class="log-panel">
-        <div class="panel-header">
-          <div class="panel-title">System Log</div>
+      <!-- Info grid -->
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="ic-key">Order ID</div>
+          <div class="ic-val mono" id="icOrderId">—</div>
         </div>
-        <div class="log-body" id="logBody">
-          <div class="log-line">> system ready</div>
-          <div class="log-line">> awaiting dispatch command...</div>
+        <div class="info-cell">
+          <div class="ic-key">Destination</div>
+          <div class="ic-val" id="icDest">—</div>
         </div>
+        <div class="info-cell">
+          <div class="ic-key">Warehouse</div>
+          <div class="ic-val" id="icWh">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-key">Van · Load</div>
+          <div class="ic-val mono" id="icVan">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-key">Distance</div>
+          <div class="ic-val mono" id="icDist">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-key">Current Node</div>
+          <div class="ic-val" id="icNode">—</div>
+        </div>
+      </div>
+
+      <!-- Traffic / reroute strips -->
+      <div class="traffic-strip" id="trafficStrip">
+        <div class="ts-title">🚦 Traffic Detected</div>
+        <div class="ts-body" id="tsBody">Congestion detected. Recalculating route…</div>
+      </div>
+      <div class="reroute-strip" id="rerouteStrip">
+        <div class="rs-title">✅ Route Recalculated</div>
+        <div class="rs-body" id="rsBody">New optimal path found. Van rerouted.</div>
       </div>
 
     </div>
   </div>
 
-</main>
+  <!-- ── RIGHT — MAP ── -->
+  <div class="map-panel">
+    <div id="deliveryMap"></div>
+
+    <div class="map-empty" id="mapEmpty">
+      <div class="map-empty-icon">🗺️</div>
+      <div class="map-empty-text">Load orders to begin live tracking</div>
+    </div>
+
+    <!-- Route chain overlay -->
+    <div class="map-overlay" id="mapOverlay">
+      <div class="mo-label">Route Progress</div>
+      <div class="route-chain" id="routeChain"></div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="map-status-bar" id="mapStatusBar">
+      <div class="msb-item">
+        <div class="msb-label">VAN</div>
+        <div class="msb-van" id="msbVan">—</div>
+      </div>
+      <div class="msb-divider"></div>
+      <div class="msb-item">
+        <div class="msb-label">AT</div>
+        <div class="msb-val" id="msbAt">—</div>
+      </div>
+      <div class="msb-divider"></div>
+      <div class="msb-item">
+        <div class="msb-label">ETA</div>
+        <div class="msb-val" id="msbEta">—</div>
+      </div>
+      <div class="msb-divider"></div>
+      <div class="msb-item">
+        <div class="msb-label">ORDER</div>
+        <div class="msb-val" id="msbOrder">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <script>
-  const VAN_CAP = { Small: 30, Medium: 60, Large: 100 };
-  const vanStats = { Small: { trips:0, kg:0 }, Medium: { trips:0, kg:0 }, Large: { trips:0, kg:0 } };
+// ── Clock ────────────────────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-IN', {hour12: false});
+}, 1000);
 
-  // ── step-through state ──────────────────────────────────────────────────────
-  let allSteps    = [];
-  let currentStep = 0;
+// ── Constants ────────────────────────────────────────────────────────────
+const P_COLOR = { 1:'#DC2626', 2:'#D97706', 3:'#2563EB', 4:'#059669', 5:'#6B7280' };
+const P_LABEL = { 1:'CRITICAL', 2:'HIGH', 3:'MEDIUM', 4:'LOW', 5:'MINIMAL' };
+const VAN_CAP = { Small:30, Medium:60, Large:100 };
+const VAN_NAMES = ['Small', 'Medium', 'Large'];
 
-  // ── utils ──────────────────────────────────────────────────────────────────
-  function log(msg, type='') {
-    const lb = document.getElementById('logBody');
-    const d  = document.createElement('div');
-    d.className = 'log-line ' + type;
-    d.textContent = '> ' + msg;
-    lb.appendChild(d);
-    lb.scrollTop = lb.scrollHeight;
-  }
+// ── State ────────────────────────────────────────────────────────────────
+let dMap       = null;
+let mapLayers  = [];
+let vanMarker  = null;
+let sessionRunning = false;
 
-  function setStatus(text, live=false) {
-    const p = document.getElementById('statusPill');
-    p.textContent = text;
-    p.className = 'status-pill' + (live ? ' live' : '');
-  }
+// ── Helpers ──────────────────────────────────────────────────────────────
+const el   = id => document.getElementById(id);
+const show = id => el(id).classList.add('visible');
+const hide = id => el(id).classList.remove('visible');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-  function resetStats() {
-    Object.keys(vanStats).forEach(k => { vanStats[k].trips = 0; vanStats[k].kg = 0; });
-    ['Small','Medium','Large'].forEach(v => {
-      document.getElementById('trips'+v).textContent = '0';
-      document.getElementById('used'+v).textContent  = '0';
-      document.getElementById('kg'+v).textContent    = '0';
-    });
-    ['numTrips','numPkgs','numKg','numBonus'].forEach(id => {
-      document.getElementById(id).textContent = '—';
-    });
-    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('visible'));
-    document.querySelectorAll('.van-card').forEach(c => c.classList.remove('visible'));
-  }
-
-  function setBothBtnsDisabled(val) {
-    document.getElementById('runBtn').disabled  = val;
-    document.getElementById('stepBtn').disabled = val;
-  }
-
-  // ── show result mode ────────────────────────────────────────────────────────
-  function showResultPanel() {
-    document.getElementById('resultPanel').style.display = 'block';
-    document.getElementById('stepPanel').classList.remove('active');
-  }
-
-  function showStepPanel() {
-    document.getElementById('resultPanel').style.display = 'none';
-    document.getElementById('stepPanel').classList.add('active');
-  }
-
-  // ── trip card render ────────────────────────────────────────────────────────
-  function renderTrip(trip, idx) {
-    const delay = idx * 80;
-    const pct   = Math.min(100, Math.round((trip.load / VAN_CAP[trip.van]) * 100));
-    const routeParts = trip.route_nodes.map((nid, i) =>
-      `<span class="node">${trip.route_names[i]}</span>`
-    ).join(' <span class="arrow">→</span> ');
-    const pkgChips  = trip.packages.map(p => `<span class="pkg-chip">${p}</span>`).join('');
-    const bonusTag  = trip.has_bonus ? `<div class="bonus-tag">+ BONUS STOP: ${trip.bonus_name}</div>` : '';
-    const card = document.createElement('div');
-    card.className = 'trip-card';
-    card.innerHTML = `
-      <div class="trip-top">
-        <span class="trip-id">TRIP-${String(idx+1).padStart(3,'0')}</span>
-        <span class="van-badge ${trip.van}">${trip.van.toUpperCase()}</span>
-      </div>
-      ${bonusTag}
-      <div class="trip-dest">${trip.destination}</div>
-      <div class="trip-route">${routeParts}</div>
-      <div class="trip-meta">
-        <div class="meta-item"><span class="meta-val">${trip.load} kg</span><span class="meta-key">LOAD</span></div>
-        <div class="meta-item"><span class="meta-val">${trip.distance} km</span><span class="meta-key">DISTANCE</span></div>
-        <div class="meta-item"><span class="meta-val">${trip.packages.length}</span><span class="meta-key">PKGS</span></div>
-        <div class="meta-item"><span class="meta-val">${pct}%</span><span class="meta-key">CAPACITY</span></div>
-      </div>
-      <div class="load-bar">
-        <div class="load-fill" id="lf-${idx}" style="background:${
-          trip.van==='Small'?'var(--green)':trip.van==='Medium'?'var(--yellow)':'var(--accent)'
-        }"></div>
-      </div>
-      <div class="pkg-list">${pkgChips}</div>`;
-    document.getElementById('tripsContainer').appendChild(card);
-    setTimeout(() => {
-      card.classList.add('visible');
-      setTimeout(() => { const lf=document.getElementById('lf-'+idx); if(lf) lf.style.width=pct+'%'; }, 200);
-    }, delay);
-  }
-
-  function updateVanStats(trip) {
-    const v = trip.van;
-    vanStats[v].trips++;
-    vanStats[v].kg += trip.load;
-    document.getElementById('trips'+v).textContent = vanStats[v].trips;
-    document.getElementById('used'+v).textContent  = vanStats[v].trips;
-    document.getElementById('kg'+v).textContent    = Math.round(vanStats[v].kg * 10) / 10;
-  }
-
-  // ── SHOW RESULT ─────────────────────────────────────────────────────────────
-  async function runPipeline() {
-    const btn = document.getElementById('runBtn');
-    const n   = document.getElementById('pkgSlider').value;
-    setBothBtnsDisabled(true);
-    btn.innerHTML = '<span class="spinner"></span> LOADING...';
-    setStatus('PROCESSING', true);
-    showResultPanel();
-    resetStats();
-    document.getElementById('tripsContainer').innerHTML = '';
-    document.getElementById('logBody').innerHTML = '';
-    document.getElementById('tripCount').textContent = '0 trips';
-    log('pipeline initiated', 'info');
-    try {
-      const res  = await fetch(`/run?n=${n}`);
-      const data = await res.json();
-      if (data.error) { log('ERROR: '+data.error,'err'); setStatus('ERROR'); setBothBtnsDisabled(false); btn.innerHTML='▶ &nbsp; SHOW RESULT'; return; }
-      log(`${data.packages_generated} packages generated`,'ok');
-      log(`${data.destinations} unique destinations`,'ok');
-      log('routing via dijkstra...','info');
-      log('packing vans via knapsack DP...','info');
-      log('finding bonus stops via divide & conquer...','info');
-      const trips = data.trips;
-      let totalBonus=0, totalKg=0, totalPkgs=0;
-      trips.forEach((trip, i) => {
-        renderTrip(trip, i);
-        updateVanStats(trip);
-        if (trip.has_bonus) totalBonus++;
-        totalKg   += trip.load;
-        totalPkgs += trip.packages.length;
-      });
-      document.getElementById('tripCount').textContent = trips.length + ' trips';
-      setTimeout(() => {
-        document.getElementById('numTrips').textContent = trips.length;
-        document.getElementById('numPkgs').textContent  = totalPkgs;
-        document.getElementById('numKg').textContent    = Math.round(totalKg);
-        document.getElementById('numBonus').textContent = totalBonus;
-        document.querySelectorAll('.stat-card').forEach((c,i) => setTimeout(()=>c.classList.add('visible'),i*80));
-        document.querySelectorAll('.van-card').forEach((c,i)  => setTimeout(()=>c.classList.add('visible'),i*100));
-      }, 200);
-      log(`dispatched ${trips.length} trips`,'ok');
-      log(`total shipped: ${Math.round(totalKg)} kg`,'ok');
-      log(`bonus stops added: ${totalBonus}`,'ok');
-      log('pipeline complete ✓','ok');
-      setStatus('COMPLETE');
-    } catch(err) {
-      log('fetch error: '+err.message,'err'); setStatus('ERROR');
-    }
-    setBothBtnsDisabled(false);
-    btn.innerHTML = '▶ &nbsp; SHOW RESULT';
-  }
-
-  // ── STEP THROUGH ─────────────────────────────────────────────────────────────
-  async function runStepThrough() {
-    const btn = document.getElementById('stepBtn');
-    const n   = document.getElementById('pkgSlider').value;
-    setBothBtnsDisabled(true);
-    btn.innerHTML = '<span class="spinner"></span> LOADING...';
-    setStatus('LOADING STEPS', true);
-    showStepPanel();
-    resetStats();
-    document.getElementById('logBody').innerHTML = '';
-    try {
-      const res  = await fetch(`/steps?n=${n}`);
-      allSteps   = await res.json();
-      currentStep = 0;
-      buildStepNav();
-      renderStep(0);
-      setStatus('STEP MODE');
-    } catch(err) {
-      log('fetch error: '+err.message,'err'); setStatus('ERROR');
-    }
-    setBothBtnsDisabled(false);
-    btn.innerHTML = '◈ &nbsp; STEP BY STEP';
-  }
-
-  function buildStepNav() {
-    const nav = document.getElementById('stepNav');
-    nav.innerHTML = '';
-    allSteps.forEach((s, i) => {
-      if (i > 0) {
-        const conn = document.createElement('div');
-        conn.className = 'step-connector';
-        nav.appendChild(conn);
-      }
-      const dot = document.createElement('div');
-      dot.className = 'step-dot' + (i === 0 ? ' active' : '');
-      dot.id = 'dot-' + i;
-      dot.textContent = i + 1;
-      dot.title = s.title;
-      dot.onclick = () => { currentStep = i; renderStep(i); };
-      nav.appendChild(dot);
-    });
-  }
-
-  function updateStepNav(idx) {
-    allSteps.forEach((_, i) => {
-      const dot = document.getElementById('dot-' + i);
-      if (!dot) return;
-      dot.className = 'step-dot' + (i < idx ? ' done' : i === idx ? ' active' : '');
-    });
-  }
-
-  function changeStep(dir) {
-    const next = currentStep + dir;
-    if (next < 0 || next >= allSteps.length) return;
-    currentStep = next;
-    renderStep(currentStep);
-  }
-
-  function renderStep(idx) {
-    const s    = allSteps[idx];
-    const last = idx === allSteps.length - 1;
-
-    updateStepNav(idx);
-    document.getElementById('stepCounter').textContent = `STEP ${idx+1} / ${allSteps.length}`;
-    document.getElementById('prevBtn').disabled = idx === 0;
-    document.getElementById('nextBtn').disabled = last;
-    document.getElementById('nextBtn').className = last ? 'step-btn done-btn' : 'step-btn next';
-    document.getElementById('nextBtn').textContent = last ? 'DONE ✓' : 'NEXT ▶';
-
-    const body = document.getElementById('stepBody');
-    body.innerHTML = `
-      <div class="step-header">
-        <div class="step-title">Step ${s.step} — ${s.title}</div>
-        <div class="step-algo-badge">${s.algo}</div>
-      </div>
-      <div class="step-explanation">${s.explanation}</div>
-      <div class="step-content" id="stepContent"></div>`;
-
-    const content = document.getElementById('stepContent');
-
-    // ── per-step renderers ────────────────────────────────────────────────────
-    if (s.step === 1) {
-      content.innerHTML = `
-        <table class="step-table">
-          <thead><tr><th>PACKAGE</th><th>WEIGHT</th><th>DEADLINE (h)</th><th>PRIORITY</th><th>DEST NODE</th></tr></thead>
-          <tbody>${s.data.map(p=>`<tr>
-            <td>${p.package_id}</td><td>${p.weight} kg</td>
-            <td>${p.deadline}</td><td>${p.priority}</td><td>${p.dest_node}</td>
-          </tr>`).join('')}</tbody>
-        </table>
-        <div style="font-size:10px;color:var(--muted);margin-top:8px">Showing first ${s.data.length} of all packages</div>`;
-    }
-
-    else if (s.step === 2) {
-  const deadlineRows = s.before.map((b, i) => {
-    const a = s.after[i];
-    const moved = b.package_id !== a.package_id;
-    return `<tr ${moved ? 'class="highlight"' : ''}>
-      <td>${b.package_id}</td><td>${b.deadline}h</td>
-      <td style="color:var(--muted)">→</td>
-      <td>${a.package_id}</td><td>${a.deadline}h</td>
-    </tr>`;
-  }).join('');
-
-  const priorityRows = (s.priority_sorted || []).map(p =>
-    `<tr><td>${p.package_id}</td><td style="color:var(--yellow)">${p.priority}</td></tr>`
-  ).join('');
-
-  const weightRows = (s.weight_sorted || []).map(p =>
-    `<tr><td>${p.package_id}</td><td style="color:var(--green)">${p.weight} kg</td></tr>`
-  ).join('');
-
-  content.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
-
-      <div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:2px;margin-bottom:8px">
-          MERGE SORT — BY DEADLINE
-        </div>
-        <table class="step-table">
-          <thead><tr><th colspan="2">BEFORE</th><th></th><th colspan="2">AFTER</th></tr>
-          <tr><th>PKG</th><th>DEADLINE</th><th></th><th>PKG</th><th>DEADLINE</th></tr></thead>
-          <tbody>${deadlineRows}</tbody>
-        </table>
-      </div>
-
-      <div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--yellow);letter-spacing:2px;margin-bottom:8px">
-          HEAP SORT — BY PRIORITY (DESC)
-        </div>
-        <table class="step-table">
-          <thead><tr><th>PKG</th><th>PRIORITY</th></tr></thead>
-          <tbody>${priorityRows}</tbody>
-        </table>
-      </div>
-
-      <div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--green);letter-spacing:2px;margin-bottom:8px">
-          QUICK SORT — BY WEIGHT (ASC)
-        </div>
-        <table class="step-table">
-          <thead><tr><th>PKG</th><th>WEIGHT</th></tr></thead>
-          <tbody>${weightRows}</tbody>
-        </table>
-      </div>
-
-    </div>`;
+function nodeCoord(nodes, id) {
+  const n = nodes[String(id)];
+  return n ? [n.lat, n.lng] : null;
 }
 
-    else if (s.step === 3) {
-      content.innerHTML = `
-        <table class="step-table">
-          <thead><tr><th>DESTINATION</th><th>NODE</th><th>PACKAGES</th><th>TOTAL WEIGHT</th></tr></thead>
-          <tbody>${s.groups.map(g=>`<tr>
-            <td>${g.dest_name}</td><td>${g.dest_node}</td>
-            <td>${g.count}</td><td>${g.total_weight} kg</td>
-          </tr>`).join('')}</tbody>
-        </table>`;
+function addLayer(layer) {
+  layer.addTo(dMap);
+  mapLayers.push(layer);
+  return layer;
+}
+
+function clearDynLayers() {
+  mapLayers.forEach(l => { try { dMap.removeLayer(l); } catch(e){} });
+  mapLayers = [];
+  if (vanMarker) { try { dMap.removeLayer(vanMarker); } catch(e){} vanMarker = null; }
+}
+
+// ── Map init ─────────────────────────────────────────────────────────────
+function initMap() {
+  if (dMap) return;
+  dMap = L.map('deliveryMap', {
+    center: [28.62, 77.20], zoom: 12,
+    zoomControl: true, attributionControl: false
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:18}).addTo(dMap);
+}
+
+function drawBaseNetwork(nodes, edges) {
+  edges.forEach(e => {
+    const c1 = nodeCoord(nodes, e.u), c2 = nodeCoord(nodes, e.v);
+    if (c1 && c2) addLayer(L.polyline([c1, c2], { color:'#C8C4BB', weight:1.5, opacity:0.8 }));
+  });
+  Object.entries(nodes).forEach(([id, n]) => {
+    const isWH = n.type === 'warehouse';
+    const m = addLayer(L.circleMarker([n.lat, n.lng], {
+      radius: isWH ? 8 : 5,
+      color: isWH ? '#5B21B6' : '#9CA3AF',
+      fillColor: isWH ? '#EDE9FE' : '#F9FAFB',
+      fillOpacity: 1, weight: isWH ? 2 : 1.5
+    }));
+    m.bindTooltip(n.name, { className: 'tt-custom', direction:'top', offset:[0,-6] });
+  });
+}
+
+// ── Stepper ───────────────────────────────────────────────────────────────
+function setStep(active) {
+  for (let i = 1; i <= 5; i++) {
+    const c = el('sp'+i), l = el('sl'+i);
+    if (i < active) {
+      c.className = 'step-circle s-done'; c.textContent = '✓';
+      l.className = 'step-lbl sl-done';
+    } else if (i === active) {
+      c.className = 'step-circle s-active'; c.textContent = i < 5 ? i : '✓';
+      l.className = 'step-lbl sl-active';
+    } else {
+      c.className = 'step-circle'; c.textContent = i < 5 ? i : '✓';
+      l.className = 'step-lbl';
+    }
+    const bar = el('sb'+i);
+    if (bar) bar.className = 'step-bar' + (i < active ? ' done' : '');
+  }
+}
+
+// ── Order list ───────────────────────────────────────────────────────────
+let ordersData  = [];
+let doneCount   = 0;
+let activeIdx   = -1;
+
+function renderOrderList(orders) {
+  const list = el('orderList');
+  list.innerHTML = '';
+
+  let lastP = null;
+  orders.forEach((o, i) => {
+    if (o.priority !== lastP) {
+      const div = document.createElement('div');
+      div.className = 'p-divider';
+      div.innerHTML = `
+        <span style="width:8px;height:8px;border-radius:50%;background:${P_COLOR[o.priority]};display:inline-block;flex-shrink:0"></span>
+        <span style="color:${P_COLOR[o.priority]}">Priority ${o.priority} — ${P_LABEL[o.priority]}</span>
+      `;
+      list.appendChild(div);
+      lastP = o.priority;
     }
 
-    else if (s.step === 4) {
-      content.innerHTML = `
-        <div style="margin-bottom:12px;color:var(--muted);font-size:10px">
-          DESTINATION: <span style="color:var(--accent3)">${s.destination}</span>
-        </div>
-        <table class="step-table">
-          <thead><tr><th>WAREHOUSE</th><th>DISTANCE</th><th>STATUS</th></tr></thead>
-          <tbody>${s.warehouse_distances.map(w=>`
-            <tr class="${w.warehouse_name===s.selected.warehouse_name?'highlight':''}">
-              <td>${w.warehouse_name}</td>
-              <td>${w.reachable ? w.distance+' km' : '∞'}</td>
-              <td>${w.warehouse_name===s.selected.warehouse_name
-                  ? '<span style="color:var(--green)">✓ SELECTED</span>'
-                  : w.reachable ? '—' : '<span style="color:var(--muted)">UNREACHABLE</span>'}</td>
-            </tr>`).join('')}</tbody>
-        </table>`;
-    }
+    const row = document.createElement('div');
+    row.className = 'order-item';
+    row.id = 'order-row-' + i;
 
-    else if (s.step === 5) {
-      content.innerHTML = `
-        <div style="margin-bottom:14px;font-size:10px;color:var(--muted)">
-          DESTINATION WEIGHT: <span style="color:var(--accent)">${s.total_weight} kg</span>
-        </div>
-        <div style="margin-bottom:10px">
-          ${s.van_checks.map(v => `
-            <span class="step-tag ${v.van===s.selected?'sel':v.fits?'fit':'nofit'}">
-              ${v.van} (${v.capacity}kg) ${v.van===s.selected?'← SELECTED':v.fits?'✓ fits':'✗'}
-            </span>`).join('')}
-        </div>`;
-    }
+    row.innerHTML = `
+      <span class="p-dot" style="background:${P_COLOR[o.priority]}"></span>
+      <span class="order-id-col">${o.package_id}</span>
+      <div>
+        <div class="order-dest-col">${o.dest_name}</div>
+        <div class="order-meta-col">P${o.priority} · ${o.deadline}h deadline · ${o.weight}kg</div>
+      </div>
+      <div class="order-meta-col" style="text-align:right"></div>
+      <div class="order-status-col">
+        <span class="o-badge ob-waiting" id="badge-${i}">Waiting</span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
 
-    else if (s.step === 6) {
-      const packedRows   = s.packed.map(p=>`<tr class="packed"><td>${p.package_id}</td><td>${p.weight} kg</td><td>✓ packed</td></tr>`).join('');
-      const leftoverRows = s.leftover.map(p=>`<tr class="leftover"><td>${p.package_id}</td><td>${p.weight} kg</td><td>next van</td></tr>`).join('');
-      content.innerHTML = `
-        <div style="display:flex;gap:24px;margin-bottom:12px;font-size:10px">
-          <span>VAN CAPACITY: <span style="color:var(--accent)">${s.van_capacity} kg</span></span>
-          <span>PACKED: <span style="color:var(--green)">${s.packed_weight} kg</span></span>
-          <span>LEFTOVER: <span style="color:var(--muted)">${s.leftover_weight} kg</span></span>
-        </div>
-        <table class="step-table">
-          <thead><tr><th>PACKAGE</th><th>WEIGHT</th><th>STATUS</th></tr></thead>
-          <tbody>${packedRows}${leftoverRows}</tbody>
-        </table>`;
-    }
+  el('sTot').textContent  = orders.length;
+  el('sDone').textContent = '0';
+  el('sRem').textContent  = orders.length;
+}
 
-    else if (s.step === 7) {
-      content.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px">
-          <div style="padding:16px;border:1px solid var(--border)">
-            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">PRIMARY STOP</div>
-            <div style="color:var(--accent3);font-size:13px">${s.primary_node}</div>
-          </div>
-          <div style="padding:16px;border:1px solid var(--accent2);background:rgba(14,165,233,0.05)">
-            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">BONUS STOP FOUND</div>
-            <div style="color:var(--accent2);font-size:13px">${s.bonus_node || 'None'}</div>
-          </div>
-          <div style="padding:16px;border:1px solid var(--border)">
-            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">REMAINING CAPACITY</div>
-            <div style="color:var(--green);font-size:13px">${s.remaining_capacity} kg</div>
-          </div>
-        </div>`;
-    }
+function setOrderStatus(i, status, badgeClass, badgeText) {
+  const row   = el('order-row-' + i);
+  const badge = el('badge-' + i);
+  if (!row || !badge) return;
+  row.className = 'order-item' + (status === 'active' ? ' active-order' : status === 'done' ? ' done-order' : '');
+  badge.className = 'o-badge ' + badgeClass;
+  badge.textContent = badgeText;
+  if (status === 'active') row.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
 
-    else if (s.step === 8) {
-      const routeHtml = s.route_names.map((name, i) =>
-        (i > 0 ? '<span class="step-route-arrow">→</span>' : '') +
-        `<span class="step-route-node">${name}</span>`
-      ).join('');
-      content.innerHTML = `
-        <div class="step-route">${routeHtml}</div>
-        <div style="display:flex;gap:24px;margin-top:20px;font-size:10px">
-          <span>DISTANCE: <span style="color:var(--accent)">${s.distance} km</span></span>
-          <span>LOAD: <span style="color:var(--green)">${s.load} kg</span></span>
-          <span>PACKAGES: <span style="color:var(--accent2)">${s.packages.join(', ')}</span></span>
-        </div>`;
+// ── Route chain overlay ───────────────────────────────────────────────────
+function buildRouteChain(path, nodes) {
+  const rc = el('routeChain');
+  rc.innerHTML = '';
+  path.forEach((id, i) => {
+    const n = nodes[String(id)];
+    if (!n) return;
+
+    const node = document.createElement('div');
+    node.className = 'rc-node';
+    node.id = 'rcn-' + i;
+
+    let tag = '';
+    if (i === 0) tag = `<span class="rc-tag" style="background:var(--accent-l);color:var(--accent)">WH</span>`;
+    if (i === path.length - 1) tag = `<span class="rc-tag" style="background:var(--green-l);color:var(--green)">DEST</span>`;
+
+    node.innerHTML = `<div class="rc-dot"></div><div class="rc-name">${n.name}</div>${tag}`;
+    rc.appendChild(node);
+
+    if (i < path.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 'rc-connector';
+      conn.style.marginLeft = '3px';
+      rc.appendChild(conn);
+    }
+  });
+  show('mapOverlay');
+}
+
+function markRCNode(idx, type) {
+  const node = el('rcn-' + idx);
+  if (!node) return;
+  node.className = 'rc-node rc-' + type;
+
+  // remove old Van Here tag
+  node.querySelectorAll('.rc-tag.here-tag').forEach(t => t.remove());
+
+  if (type === 'current') {
+    const t = document.createElement('span');
+    t.className = 'rc-tag here-tag';
+    t.style.cssText = 'background:var(--accent-l);color:var(--accent)';
+    t.textContent = 'HERE';
+    node.appendChild(t);
+  }
+}
+
+// ── Main session ─────────────────────────────────────────────────────────
+async function startSession() {
+  if (sessionRunning) return;
+  sessionRunning = true;
+
+  const btn = el('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spin"></span> Loading orders…';
+
+  const n = el('nSlider').value;
+
+  // Clear previous
+  clearDynLayers();
+  hide('mapOverlay');
+  hide('mapStatusBar');
+  hide('trafficStrip');
+  hide('rerouteStrip');
+  el('activeDetail').style.display = 'none';
+  el('mapEmpty').style.display = 'none';
+  doneCount = 0;
+
+  // Fetch sorted orders from /run
+  let runData;
+  try {
+    const r = await fetch(`/run?n=${n}`);
+    runData = await r.json();
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '▶ &nbsp; LOAD & DISPATCH ORDERS';
+    sessionRunning = false;
+    return;
+  }
+
+  // runData is the steps array — step 8 has the dispatch info
+  // We need /ops for the full sorted orders list
+  let opsData;
+  try {
+    const r = await fetch(`/ops?n=${n}`);
+    opsData = await r.json();
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '▶ &nbsp; LOAD & DISPATCH ORDERS';
+    sessionRunning = false;
+    return;
+  }
+
+  ordersData = opsData.sorted_orders;  // already sorted by priority then deadline
+
+  // Enrich with dest_name from nodes (ops returns id + priority + deadline + weight + dest name)
+  renderOrderList(ordersData);
+
+  // Init map + draw base network
+  initMap();
+  // Fetch nodes/edges for base layer
+  const nodesEdges = await fetch('/nodes').then(r => r.json());
+  drawBaseNetwork(nodesEdges.nodes.reduce((acc, n) => { acc[n.id] = n; return acc; }, {}),
+                  nodesEdges.edges);
+
+  btn.innerHTML = '▶ &nbsp; LOAD & DISPATCH ORDERS';
+
+  // Process each order one by one
+  for (let i = 0; i < ordersData.length; i++) {
+    activeIdx = i;
+    await processOrder(i, ordersData[i]);
+    doneCount++;
+    el('sDone').textContent = doneCount;
+    el('sRem').textContent  = ordersData.length - doneCount;
+    await sleep(400); // brief gap between orders
+  }
+
+  btn.disabled = false;
+  sessionRunning = false;
+}
+
+async function processOrder(idx, order) {
+  const destId = order.dest_node !== undefined ? order.dest_node : order.dest_id;
+
+  // Fetch simulate for this specific destination
+  let sim;
+  try {
+    const r = await fetch(`/simulate?dest=${destId}`);
+    sim = await r.json();
+  } catch(e) { return; }
+
+  const { nodes, edges, warehouse, warehouse_name, destination,
+          dest_name, planned_path, planned_distance, traffic_event } = sim;
+
+  // Convert nodes array to lookup
+  const nodesMap = typeof nodes === 'object' && !Array.isArray(nodes)
+    ? nodes
+    : nodes.reduce((a, n) => { a[n.id] = n; return a; }, {});
+
+  // ── Show active detail panel ──
+  el('activeDetail').style.display = 'block';
+  el('detailTitle').textContent = `Order ${idx + 1} of ${ordersData.length}`;
+  el('icOrderId').textContent   = order.package_id || order.id;
+  el('icDest').textContent      = dest_name;
+  el('icWh').textContent        = warehouse_name;
+  el('icDist').textContent      = planned_distance + ' km';
+  el('icNode').textContent      = '—';
+
+  // Pick van
+  const vanName = VAN_NAMES[Math.floor(Math.random() * VAN_NAMES.length)];
+  const vanCap  = VAN_CAP[vanName];
+  const loadKg  = Math.round((order.weight || 5) + Math.random() * 10);
+  el('icVan').textContent = `${vanName} · ${loadKg}kg`;
+
+  // Status bar
+  el('msbVan').textContent   = vanName;
+  el('msbOrder').textContent = `${idx+1}/${ordersData.length}`;
+  show('mapStatusBar');
+
+  hide('trafficStrip');
+  hide('rerouteStrip');
+
+  // ── Step 1: Placed ──
+  setOrderStatus(idx, 'active', 'ob-packing', 'Packing');
+  setStep(1);
+  setBadge('Processing', 'ob-packing');
+  await sleep(600);
+
+  // ── Step 2: Packed ──
+  setStep(2);
+  setBadge('Packed', 'ob-packing');
+  await sleep(700);
+
+  // ── Step 3: Dispatched ──
+  setOrderStatus(idx, 'active', 'ob-enroute', 'En Route');
+  setStep(3);
+  setBadge('En Route', 'ob-enroute');
+
+  // Clear old route, draw new
+  clearDynLayers();
+  drawBaseNetwork(
+    Object.fromEntries(Object.entries(nodesMap).map(([k,v])=>[k,v])),
+    sim.edges
+  );
+
+  const plannedCoords = planned_path.map(id => nodeCoord(nodesMap, id)).filter(Boolean);
+  addLayer(L.polyline(plannedCoords, { color:'#5B21B6', weight:3, opacity:0.35, dashArray:'7 5' }));
+
+  const whCoord  = nodeCoord(nodesMap, warehouse);
+  const dstCoord = nodeCoord(nodesMap, destination);
+
+  if (whCoord) {
+    const wm = addLayer(L.circleMarker(whCoord, { radius:11, color:'#5B21B6', fillColor:'#5B21B6', fillOpacity:1, weight:2 }));
+    wm.bindTooltip('🏭 ' + warehouse_name, { className:'tt-custom', permanent:true, direction:'top', offset:[0,-12] });
+  }
+
+  if (dstCoord) {
+    const dm = addLayer(L.circleMarker(dstCoord, { radius:11, color:'#059669', fillColor:'#059669', fillOpacity:1, weight:2 }));
+    dm.bindTooltip('📦 ' + dest_name, { className:'tt-custom', permanent:true, direction:'top', offset:[0,-12] });
+  }
+
+  if (plannedCoords.length > 1)
+    dMap.fitBounds(L.latLngBounds(plannedCoords).pad(0.2));
+
+  // Build route chain
+  buildRouteChain(planned_path, nodesMap);
+  markRCNode(0, 'visited');
+
+  // Van marker
+  const vanIcon = L.divIcon({
+    className: '',
+    html: `<div style="
+      width:28px;height:28px;border-radius:50%;
+      background:#5B21B6;border:3px solid #fff;
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;
+      box-shadow:0 2px 10px rgba(91,33,182,0.5);
+      animation:van-pulse 1.5s infinite;
+    ">🚐</div>
+    <style>@keyframes van-pulse{0%,100%{box-shadow:0 2px 10px rgba(91,33,182,0.5),0 0 0 0 rgba(91,33,182,0.3)}50%{box-shadow:0 2px 10px rgba(91,33,182,0.5),0 0 0 8px rgba(91,33,182,0)}}</style>`,
+    iconSize: [28,28], iconAnchor:[14,14]
+  });
+  vanMarker = L.marker(whCoord || plannedCoords[0], { icon:vanIcon, zIndexOffset:1000 }).addTo(dMap);
+
+  await sleep(500);
+
+  // ── Step 4: En Route — animate ──
+  setStep(4);
+
+  const atNode    = traffic_event.at_node;
+  const atNodeIdx = atNode !== null ? planned_path.indexOf(atNode) : -1;
+  const phase1    = atNodeIdx >= 0 ? planned_path.slice(0, atNodeIdx + 1) : planned_path;
+
+  let tLine = addLayer(L.polyline([], { color:'#5B21B6', weight:4, opacity:1 }));
+
+  // Phase 1 travel
+  for (let i = 0; i < phase1.length; i++) {
+    const coord = nodeCoord(nodesMap, phase1[i]);
+    if (!coord) continue;
+    vanMarker.setLatLng(coord);
+    tLine.addLatLng(coord);
+    dMap.panTo(coord, { animate:true, duration:0.25 });
+
+    el('icNode').textContent  = nodesMap[String(phase1[i])]?.name || '—';
+    el('msbAt').textContent   = nodesMap[String(phase1[i])]?.name || '—';
+    el('msbEta').textContent  = Math.max(0, planned_path.length - 1 - i) + ' stops';
+
+    markRCNode(i, i === phase1.length - 1 && atNode !== null ? 'current' : 'visited');
+
+    if (i < phase1.length - 1) await sleep(800);
+  }
+
+  // ── Traffic event ──
+  if (atNode !== null && traffic_event.congested_edges.length > 0) {
+    setBadge('Traffic!', 'ob-traffic');
+    setOrderStatus(idx, 'active', 'ob-traffic', 'Traffic');
+    el('msbEta').textContent = 'Recalc…';
+
+    const edgeDesc = traffic_event.congested_edges.map(ce => {
+      const u = nodesMap[String(ce.u)]?.name || ce.u;
+      const v = nodesMap[String(ce.v)]?.name || ce.v;
+      return `${u} ↔ ${v} (${ce.multiplier}×)`;
+    }).join(', ');
+
+    el('tsBody').textContent = `${traffic_event.at_node_name}: congestion on ${edgeDesc}. Re-running Dijkstra…`;
+    show('trafficStrip');
+
+    // Draw congested edges red
+    traffic_event.congested_edges.forEach(ce => {
+      const c1 = nodeCoord(nodesMap, ce.u), c2 = nodeCoord(nodesMap, ce.v);
+      if (c1 && c2) {
+        addLayer(L.polyline([c1,c2], { color:'#DC2626', weight:5, opacity:0.85 }));
+        addLayer(L.circleMarker([(c1[0]+c2[0])/2,(c1[1]+c2[1])/2], {
+          radius:7, color:'#DC2626', fillColor:'#FCA5A5', fillOpacity:0.9, weight:2
+        })).bindTooltip(`🚦 ${ce.multiplier}×`, { className:'tt-custom' });
+      }
+    });
+
+    await sleep(1600);
+
+    if (traffic_event.reroute_happened) {
+      const newSuffix = traffic_event.new_path_suffix;
+      const newCoords = newSuffix.map(id => nodeCoord(nodesMap, id)).filter(Boolean);
+
+      addLayer(L.polyline(newCoords, { color:'#059669', weight:4, opacity:0.8, dashArray:'9 4' }));
+
+      // Append rerouted nodes to route chain
+      const rc = el('routeChain');
+      const label = document.createElement('div');
+      label.className = 'rc-reroute-label';
+      label.textContent = '↺ REROUTED';
+      rc.appendChild(label);
+
+      newSuffix.slice(1).forEach((id, j) => {
+        const n = nodesMap[String(id)];
+        if (!n) return;
+        const conn = document.createElement('div');
+        conn.className = 'rc-connector';
+        conn.style.marginLeft = '3px';
+        rc.appendChild(conn);
+        const node = document.createElement('div');
+        node.className = 'rc-node rc-rerouted';
+        node.id = 'rcn-new-' + j;
+        const isLast = j === newSuffix.length - 2;
+        let tag = isLast ? `<span class="rc-tag" style="background:var(--green-l);color:var(--green)">DEST</span>` : `<span class="rc-tag" style="background:var(--amber-l);color:var(--amber)">NEW</span>`;
+        node.innerHTML = `<div class="rc-dot" style="background:var(--amber);border-color:var(--amber)"></div><div class="rc-name">${n.name}</div>${tag}`;
+        rc.appendChild(node);
+      });
+
+      el('rsBody').textContent = `New path: ${newSuffix.map(id => nodesMap[String(id)]?.name).join(' → ')} (${traffic_event.new_distance} km)`;
+      hide('trafficStrip');
+      show('rerouteStrip');
+      setOrderStatus(idx, 'active', 'ob-rerouting', 'Rerouting');
+      setBadge('Rerouting', 'ob-rerouting');
+
+      await sleep(500);
+
+      // Phase 2 travel
+      let tLine2 = addLayer(L.polyline([], { color:'#059669', weight:4, opacity:1 }));
+      if (newCoords[0]) tLine2.addLatLng(newCoords[0]);
+
+      for (let i = 1; i < newSuffix.length; i++) {
+        const coord = nodeCoord(nodesMap, newSuffix[i]);
+        if (!coord) continue;
+        vanMarker.setLatLng(coord);
+        tLine2.addLatLng(coord);
+        dMap.panTo(coord, { animate:true, duration:0.25 });
+
+        el('icNode').textContent = nodesMap[String(newSuffix[i])]?.name || '—';
+        el('msbAt').textContent  = nodesMap[String(newSuffix[i])]?.name || '—';
+        el('msbEta').textContent = Math.max(0, newSuffix.length - 1 - i) + ' stops';
+
+        const newEls = document.querySelectorAll('[id^="rcn-new-"]');
+        if (newEls[i-1]) newEls[i-1].className = 'rc-node rc-' + (i === newSuffix.length-1 ? 'visited' : 'current');
+
+        await sleep(800);
+      }
+    } else {
+      hide('trafficStrip');
+    }
+  } else {
+    // no traffic: travel rest of planned path
+    for (let i = phase1.length; i < planned_path.length; i++) {
+      const coord = nodeCoord(nodesMap, planned_path[i]);
+      if (!coord) continue;
+      vanMarker.setLatLng(coord);
+      tLine.addLatLng(coord);
+      dMap.panTo(coord, { animate:true, duration:0.25 });
+      el('icNode').textContent = nodesMap[String(planned_path[i])]?.name || '—';
+      el('msbAt').textContent  = nodesMap[String(planned_path[i])]?.name || '—';
+      el('msbEta').textContent = Math.max(0, planned_path.length - 1 - i) + ' stops';
+      markRCNode(i, i === planned_path.length - 1 ? 'visited' : 'current');
+      await sleep(800);
     }
   }
+
+  // ── Step 5: Delivered ──
+  await sleep(300);
+  setStep(5);
+  setBadge('Delivered', 'ob-delivered');
+  setOrderStatus(idx, 'done', 'ob-delivered', 'Delivered');
+  el('icNode').textContent = dest_name;
+  el('msbAt').textContent  = dest_name;
+  el('msbEta').textContent = 'Delivered ✓';
+
+  if (dstCoord) {
+    const pulse = addLayer(L.circleMarker(dstCoord, { radius:20, color:'#059669', fill:false, weight:2, opacity:0.5 }));
+    setTimeout(() => { try { dMap.removeLayer(pulse); } catch(e){} }, 1500);
+  }
+
+  await sleep(700);
+}
+
+function setBadge(text, cls) {
+  const b = el('detailBadge');
+  b.textContent = text;
+  b.className = 'o-badge ' + cls;
+}
 </script>
 </body>
 </html>

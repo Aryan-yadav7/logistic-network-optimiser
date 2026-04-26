@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DelhiDash · Operations Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #0B0E14;
+      --surface:   #111520;
+      --surface2:  #161B28;
+      --border:    #1E2535;
+      --border2:   #263044;
+      --text:      #CDD6F4;
+      --muted:     #6B7A9F;
+      --dim:       #3A4460;
+
+      /* Priority colors */
+      --p1: #FF4D4D;  --p1-bg: rgba(255,77,77,0.08);   --p1-border: rgba(255,77,77,0.25);
+      --p2: #FF9F43;  --p2-bg: rgba(255,159,67,0.08);  --p2-border: rgba(255,159,67,0.25);
+      --p3: #FDD835;  --p3-bg: rgba(253,216,53,0.08);  --p3-border: rgba(253,216,53,0.25);
+      --p4: #4FC3F7;  --p4-bg: rgba(79,195,247,0.08);  --p4-border: rgba(79,195,247,0.25);
+      --p5: #A5A5A5;  --p5-bg: rgba(165,165,165,0.08); --p5-border: rgba(165,165,165,0.2);
+
+      --green:   #4ADE80; --green-bg: rgba(74,222,128,0.08);
+      --purple:  #A78BFA; --purple-bg: rgba(167,139,250,0.1);
+      --blue:    #60A5FA;
+      --accent:  #4ADE80;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(74,222,128,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,222,128,0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    /* ── Top Nav ── */
+    .topnav {
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(11,14,20,0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex; align-items: center; height: 52px; gap: 0;
+    }
+
+    .nav-logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px; font-weight: 600;
+      color: var(--green); letter-spacing: 1px;
+      margin-right: 40px; flex-shrink: 0;
+    }
+
+    .nav-logo span { color: var(--text); }
+
+    .nav-tabs { display: flex; align-items: stretch; gap: 0; flex: 1; }
+
+    .nav-tab {
+      padding: 0 20px;
+      height: 52px;
+      display: flex; align-items: center;
+      font-size: 12px; font-weight: 500; letter-spacing: 0.5px;
+      color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+      text-decoration: none; transition: color 0.15s;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+    .nav-right {
+      display: flex; align-items: center; gap: 16px; margin-left: auto;
+    }
+
+    .sys-badge {
+      font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+      padding: 3px 8px; border: 1px solid var(--border2);
+      color: var(--muted); letter-spacing: 1px;
+    }
+
+    .sys-badge.online {
+      border-color: var(--green); color: var(--green);
+    }
+
+    .sys-badge.online::before { content: '● '; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Main layout ── */
+    .main { position: relative; z-index: 1; }
+
+    /* ── Control Bar ── */
+    .control-bar {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+
+    .ctrl-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .ctrl-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .ctrl-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px; font-weight: 600; color: var(--green);
+      line-height: 1;
+    }
+
+    .slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+    input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      width: 160px; height: 2px;
+      background: var(--border2); outline: none; cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      background: var(--green); border-radius: 50%;
+      border: 2px solid var(--bg);
+    }
+
+    .run-btn {
+      padding: 10px 24px;
+      background: var(--green); color: #000;
+      border: none; cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; font-weight: 600; letter-spacing: 1px;
+      transition: all 0.15s; white-space: nowrap;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .run-btn:hover { filter: brightness(1.1); }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+
+    .btn-spin {
+      width: 13px; height: 13px;
+      border: 2px solid rgba(0,0,0,0.3); border-top-color: #000;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ctrl-divider { width: 1px; height: 40px; background: var(--border); }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-cell {
+      padding: 16px 24px;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+
+    .stat-cell:last-child { border-right: none; }
+
+    .stat-key {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase;
+    }
+
+    .stat-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 24px; font-weight: 600; color: var(--text); line-height: 1;
+    }
+
+    .stat-num.green  { color: var(--green); }
+    .stat-num.purple { color: var(--purple); }
+    .stat-num.blue   { color: var(--blue); }
+
+    /* ── 3-column grid ── */
+    .grid3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel {
+      border-right: 1px solid var(--border);
+      min-height: 420px;
+      display: flex; flex-direction: column;
+    }
+
+    .panel:last-child { border-right: none; }
+
+    .panel-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    .panel-title .accent { color: var(--green); }
+
+    .panel-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; padding: 2px 7px;
+      border: 1px solid var(--border2); color: var(--muted);
+    }
+
+    .panel-body {
+      flex: 1; overflow-y: auto; padding: 0;
+    }
+
+    /* ── Order row (queue table) ── */
+    .order-row {
+      display: grid;
+      grid-template-columns: 56px 28px 44px 52px 48px 1fr;
+      align-items: center;
+      padding: 9px 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+      transition: background 0.2s;
+      font-size: 11px;
+    }
+
+    .order-row:hover { background: var(--surface2); }
+    .order-row.header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; color: var(--muted); letter-spacing: 1px;
+      text-transform: uppercase; padding: 8px 16px;
+      background: var(--surface); border-bottom: 1px solid var(--border2);
+      position: sticky; top: 0; z-index: 10;
+    }
+
+    .order-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; color: var(--muted);
+    }
+
+    .p-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 4px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .p1 { background: var(--p1-bg); color: var(--p1); border: 1px solid var(--p1-border); }
+    .p2 { background: var(--p2-bg); color: var(--p2); border: 1px solid var(--p2-border); }
+    .p3 { background: var(--p3-bg); color: var(--p3); border: 1px solid var(--p3-border); }
+    .p4 { background: var(--p4-bg); color: var(--p4); border: 1px solid var(--p4-border); }
+    .p5 { background: var(--p5-bg); color: var(--p5); border: 1px solid var(--p5-border); }
+
+    .deadline-bar-wrap {
+      display: flex; align-items: center; gap: 6px;
+      grid-column: span 1;
+    }
+
+    .deadline-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; color: var(--text); width: 24px; text-align: right; flex-shrink: 0;
+    }
+
+    .dest-label {
+      font-size: 10px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .wt-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; color: var(--dim);
+    }
+
+    .rank-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; color: var(--muted); text-align: right;
+    }
+
+    /* ── Sort visualiser ── */
+    .sort-stage {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stage-head {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+
+    .stage-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 700;
+      width: 22px; height: 22px;
+      border-radius: 4px; border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted);
+    }
+
+    .stage-num.active { border-color: var(--green); color: var(--green); }
+    .stage-algo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 600; color: var(--purple);
+    }
+
+    .stage-desc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+
+    .priority-block {
+      margin-bottom: 8px;
+    }
+
+    .pblock-head {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+    }
+
+    .pblock-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    .pblock-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; color: var(--muted);
+    }
+
+    .deadline-row {
+      display: flex; flex-wrap: wrap; gap: 4px;
+    }
+
+    .dl-chip {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; padding: 2px 5px;
+      border-radius: 3px; border: 1px solid var(--border2);
+      color: var(--muted);
+      transition: all 0.3s;
+    }
+
+    .dl-chip.sorted-in {
+      border-color: var(--green); color: var(--green); background: var(--green-bg);
+      animation: chip-pop 0.3s ease;
+    }
+
+    @keyframes chip-pop {
+      0%   { transform: scale(0.8); opacity:0; }
+      60%  { transform: scale(1.05); }
+      100% { transform: scale(1); opacity:1; }
+    }
+
+    /* ── Dispatch table ── */
+    .dispatch-table { width: 100%; border-collapse: collapse; }
+
+    .dispatch-table th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); padding: 9px 14px; text-align: left;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface); position: sticky; top: 0; z-index: 10;
+      white-space: nowrap;
+    }
+
+    .dispatch-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      font-size: 11px;
+    }
+
+    .dispatch-table tr:hover td { background: var(--surface2); }
+
+    .trip-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; color: var(--muted);
+    }
+
+    .van-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; padding: 2px 7px;
+      border-radius: 3px;
+    }
+
+    .van-Small  { background: rgba(74,222,128,0.1);  color: var(--green);  border: 1px solid rgba(74,222,128,0.3); }
+    .van-Medium { background: rgba(96,165,250,0.1);  color: var(--blue);   border: 1px solid rgba(96,165,250,0.3); }
+    .van-Large  { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+
+    .load-cell {
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .load-bar-bg {
+      width: 48px; height: 4px;
+      background: var(--border2); border-radius: 2px; overflow: hidden;
+    }
+
+    .load-bar-fill {
+      height: 100%; background: var(--green); border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    .route-chain {
+      display: flex; align-items: center; gap: 3px; flex-wrap: wrap;
+    }
+
+    .route-node-tag {
+      font-size: 10px; color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .route-arrow { color: var(--dim); font-size: 9px; }
+
+    .bonus-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px; padding: 1px 5px;
+      border: 1px solid rgba(167,139,250,0.4);
+      color: var(--purple); margin-left: 4px;
+    }
+
+    .pkg-count { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+
+    /* ── Full-width section below 3col grid ── */
+    .full-section {
+      border-top: 1px solid var(--border);
+    }
+
+    .full-section-head {
+      padding: 14px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .full-section-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── Priority group heatmap ── */
+    .priority-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-top: 1px solid var(--border);
+    }
+
+    .pgroup-col {
+      border-right: 1px solid var(--border);
+      padding: 0;
+    }
+
+    .pgroup-col:last-child { border-right: none; }
+
+    .pgroup-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .pgroup-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    }
+
+    .pgroup-body { padding: 10px 12px; overflow-y: auto; max-height: 260px; }
+
+    .pgroup-pkg {
+      padding: 6px 8px; margin-bottom: 4px;
+      border-radius: 4px; border: 1px solid var(--border);
+      font-size: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .pgroup-pkg-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; color: var(--muted);
+    }
+
+    .pgroup-pkg-dl {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+    }
+
+    /* ── Algo explanation strip ── */
+    .algo-strip {
+      border-top: 1px solid var(--border);
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+
+    .algo-box {
+      padding: 20px 24px;
+      border-right: 1px solid var(--border);
+    }
+
+    .algo-box:last-child { border-right: none; }
+
+    .algo-box-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      color: var(--purple); margin-bottom: 6px;
+    }
+
+    .algo-box-sub {
+      font-size: 11px; color: var(--muted); line-height: 1.6;
+    }
+
+    .complexity-badge {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; padding: 2px 7px; margin-top: 8px;
+      border: 1px solid var(--border2); color: var(--blue);
+    }
+
+    /* ── Empty states ── */
+    .empty {
+      padding: 40px 20px; text-align: center;
+      color: var(--muted); font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* ── Animate in ── */
+    .fade-in {
+      animation: fadeIn 0.3s ease forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .slide-row {
+      animation: slideRow 0.2s ease forwards;
+      opacity: 0; transform: translateX(-8px);
+    }
+    @keyframes slideRow { to { opacity: 1; transform: none; } }
+
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="topnav">
+  <div class="nav-logo">DELHI<span>DASH</span></div>
+  <div class="nav-tabs">
+    <a href="/"         class="nav-tab">Customer Tracker</a>
+    <a href="/operations" class="nav-tab active">Operations Center</a>
+  </div>
+  <div class="nav-right">
+    <div class="sys-badge online" id="sysBadge">SYSTEM ONLINE</div>
+    <div class="sys-badge" id="clockBadge">--:--:--</div>
+  </div>
+</nav>
+
+<!-- ── Control bar ── -->
+<div class="control-bar">
+  <div class="ctrl-group">
+    <div class="ctrl-label">Incoming Orders</div>
+    <div class="slider-wrap">
+      <div class="ctrl-value" id="nVal">20</div>
+      <input type="range" id="nSlider" min="8" max="40" value="20"
+             oninput="document.getElementById('nVal').textContent=this.value"/>
+    </div>
+  </div>
+
+  <div class="ctrl-divider"></div>
+
+  <div class="ctrl-group">
+    <div class="ctrl-label">Sort Method</div>
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--purple);">
+      Quick Sort → Merge Sort
+    </div>
+  </div>
+
+  <div class="ctrl-divider"></div>
+
+  <button class="run-btn" id="runBtn" onclick="runOps()">
+    ▶ &nbsp; RUN PIPELINE
+  </button>
+</div>
+
+<!-- ── Stats strip ── -->
+<div class="stats-strip" id="statsStrip">
+  <div class="stat-cell">
+    <div class="stat-key">Total Orders</div>
+    <div class="stat-num" id="sTotal">—</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-key">Trips Dispatched</div>
+    <div class="stat-num green" id="sTrips">—</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-key">Priority Groups</div>
+    <div class="stat-num blue" id="sGroups">—</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-key">Sort Passes</div>
+    <div class="stat-num purple" id="sPasses">2</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-key">Algorithm</div>
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px; line-height:1.5;">
+      Quick Sort<br/>+ Merge Sort
+    </div>
+  </div>
+</div>
+
+<!-- ── 3-column panel grid ── -->
+<div class="grid3" id="mainGrid">
+
+  <!-- Panel 1: Raw Queue -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">① <span class="accent">Raw</span> Incoming Queue</div>
+      <div class="panel-badge" id="rawBadge">0 orders</div>
+    </div>
+    <div class="panel-body" id="rawPanel">
+      <div class="empty">Run pipeline to load orders</div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Sort Visualiser -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">② <span class="accent">Sort</span> Engine</div>
+      <div class="panel-badge">2-Pass Algorithm</div>
+    </div>
+    <div class="panel-body" id="sortPanel">
+      <div class="empty">Sort steps will appear here</div>
+    </div>
+  </div>
+
+  <!-- Panel 3: Sorted Queue -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">③ <span class="accent">Sorted</span> Dispatch Queue</div>
+      <div class="panel-badge" id="sortedBadge">0 orders</div>
+    </div>
+    <div class="panel-body" id="sortedPanel">
+      <div class="empty">Sorted queue will appear here</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Priority Group Breakdown ── -->
+<div class="full-section" id="prioritySection" style="display:none">
+  <div class="full-section-head">
+    <div class="full-section-title">Priority Group Breakdown</div>
+    <div class="sys-badge">Deadline-sorted within each group</div>
+  </div>
+  <div class="priority-grid" id="priorityGrid"></div>
+</div>
+
+<!-- ── Dispatch Table ── -->
+<div class="full-section" id="dispatchSection" style="display:none">
+  <div class="full-section-head">
+    <div class="full-section-title">Van Dispatch Log</div>
+    <div class="sys-badge" id="tripsBadge">0 trips</div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="dispatch-table">
+      <thead>
+        <tr>
+          <th>Trip</th>
+          <th>Destination</th>
+          <th>Warehouse</th>
+          <th>Van</th>
+          <th>Load</th>
+          <th>Dist (km)</th>
+          <th>Pkgs</th>
+          <th>Route</th>
+        </tr>
+      </thead>
+      <tbody id="dispatchBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Algorithm explanation ── -->
+<div class="algo-strip" id="algoStrip" style="display:none">
+  <div class="algo-box">
+    <div class="algo-box-title">Pass 1 — Quick Sort by Priority</div>
+    <div class="algo-box-sub">
+      Partitions the entire order queue around a pivot priority value. All priority-1 orders
+      are placed before priority-2, priority-2 before priority-3, and so on.
+      Quick Sort is used here because we need a fast in-place partition and stability is not
+      required — same-priority ties will be resolved in Pass 2.
+    </div>
+    <div class="complexity-badge">O(n log n) avg · O(n²) worst · Unstable</div>
+  </div>
+  <div class="algo-box">
+    <div class="algo-box-title">Pass 2 — Merge Sort by Deadline (per group)</div>
+    <div class="algo-box-sub">
+      Merge Sort is applied independently to each priority bucket produced by Pass 1.
+      Within each bucket, orders are sorted by deadline ascending (earliest deadline first).
+      Merge Sort is chosen because it is stable — packages already in priority order
+      remain so, and only the within-group deadline ordering changes.
+      Result: globally sorted by (priority ASC, deadline ASC).
+    </div>
+    <div class="complexity-badge">O(n log n) worst · Stable · Extra O(n) space</div>
+  </div>
+</div>
+
+<script>
+  // ── Clock ────────────────────────────────────────────────────────────────
+  function tick() {
+    const d = new Date();
+    document.getElementById('clockBadge').textContent =
+      d.toLocaleTimeString('en-IN', {hour12:false});
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ── Priority colors ───────────────────────────────────────────────────────
+  const P_COLOR  = { 1:'var(--p1)', 2:'var(--p2)', 3:'var(--p3)', 4:'var(--p4)', 5:'var(--p5)' };
+  const P_LABEL  = { 1:'CRITICAL', 2:'HIGH', 3:'MEDIUM', 4:'LOW', 5:'MINIMAL' };
+  const VAN_CAP  = { Small:30, Medium:60, Large:100 };
+
+  function pBadge(p) {
+    return `<span class="p-badge p${p}">${p}</span>`;
+  }
+
+  function destShort(name) {
+    const m = { 'Naraina Industrial Area':'Naraina', 'Okhla Industrial Estate':'Okhla',
+      'Patparganj Industrial Area':'Patparganj', 'Mundka Industrial Area':'Mundka',
+      'Badarpur Border Depot':'Badarpur', 'IGI Airport':'IGI Arpt',
+      'Chandni Chowk':'Chandni Chk', 'Delhi University':'DU', 'Connaught Place':'CP',
+      'AIIMS':'AIIMS', 'Select Citywalk Saket':'Saket', 'Cyberhub Gurugram':'Cyberhub',
+      'Noida Sector 18':'Noida-18', 'Lajpat Nagar':'Lajpat Ngr',
+      'Dwarka Sector 21':'Dwarka-21', 'New Delhi Railway Station':'NDLS',
+      'Kashmere Gate ISBT':'Kashmere', 'Jawaharlal Nehru Stadium':'JN Stad',
+      'ITO':'ITO', 'Rohini Sector 18':'Rohini-18' };
+    return m[name] || name.slice(0,10);
+  }
+
+  // ── Render raw queue ─────────────────────────────────────────────────────
+  function renderRawQueue(orders) {
+    const el = document.getElementById('rawPanel');
+    el.innerHTML = `
+      <div class="order-row header">
+        <span>ID</span><span>P</span><span>DL(h)</span><span>Wt(kg)</span><span>Rank</span><span>Dest</span>
+      </div>`;
+    orders.forEach((o, i) => {
+      const row = document.createElement('div');
+      row.className = 'order-row slide-row';
+      row.style.animationDelay = (i * 18) + 'ms';
+      row.innerHTML = `
+        <span class="order-id">${o.id}</span>
+        ${pBadge(o.priority)}
+        <span class="deadline-val">${o.deadline}</span>
+        <span class="wt-label">${o.weight}</span>
+        <span class="rank-label">#${i+1}</span>
+        <span class="dest-label">${destShort(o.dest)}</span>
+      `;
+      el.appendChild(row);
+    });
+    document.getElementById('rawBadge').textContent = orders.length + ' orders';
+  }
+
+  // ── Render sorted queue ───────────────────────────────────────────────────
+  function renderSortedQueue(orders) {
+    const el = document.getElementById('sortedPanel');
+    el.innerHTML = `
+      <div class="order-row header">
+        <span>ID</span><span>P</span><span>DL(h)</span><span>Wt(kg)</span><span>Rank</span><span>Dest</span>
+      </div>`;
+    let lastP = null;
+    orders.forEach((o, i) => {
+      if (o.priority !== lastP) {
+        const div = document.createElement('div');
+        div.style.cssText = `
+          padding:5px 16px; font-family:'IBM Plex Mono',monospace;
+          font-size:8px; letter-spacing:1px; text-transform:uppercase;
+          background:var(--surface); color:${P_COLOR[o.priority]};
+          border-bottom:1px solid var(--border);
+          border-left: 3px solid ${P_COLOR[o.priority]};
+        `;
+        div.textContent = `── Priority ${o.priority}: ${P_LABEL[o.priority]} (${orders.filter(x=>x.priority===o.priority).length} orders) ──`;
+        el.appendChild(div);
+        lastP = o.priority;
+      }
+      const row = document.createElement('div');
+      row.className = 'order-row slide-row';
+      row.style.animationDelay = (i * 15) + 'ms';
+      row.style.borderLeft = `3px solid ${P_COLOR[o.priority]}`;
+      row.innerHTML = `
+        <span class="order-id">${o.id}</span>
+        ${pBadge(o.priority)}
+        <span class="deadline-val">${o.deadline}</span>
+        <span class="wt-label">${o.weight}</span>
+        <span class="rank-label">#${i+1}</span>
+        <span class="dest-label">${destShort(o.dest)}</span>
+      `;
+      el.appendChild(row);
+    });
+    document.getElementById('sortedBadge').textContent = orders.length + ' orders';
+  }
+
+  // ── Render sort engine ────────────────────────────────────────────────────
+  function renderSortEngine(steps, rawOrders) {
+    const el = document.getElementById('sortPanel');
+    el.innerHTML = '';
+
+    steps.forEach((step, si) => {
+      const div = document.createElement('div');
+      div.className = 'sort-stage fade-in';
+      div.style.animationDelay = (si * 200) + 'ms';
+
+      let innerHtml = `
+        <div class="stage-head">
+          <div class="stage-num active">${step.pass}</div>
+          <div class="stage-algo">${step.algo}</div>
+        </div>
+        <div class="stage-desc">${step.description}</div>
+      `;
+
+      if (step.pass === 1) {
+        // Show before/after comparison snippet (first 10 items)
+        const before10 = rawOrders.slice(0, 10);
+        const after10  = step.result.slice(0, 10);
+        innerHtml += `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+            <div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;">BEFORE</div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px;">
+                ${before10.map(o=>`<span class="dl-chip p${o.priority}" style="border-color:${P_COLOR[o.priority]}33;color:${P_COLOR[o.priority]}">P${o.priority}</span>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--green);letter-spacing:1px;margin-bottom:5px;">AFTER</div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px;">
+                ${after10.map(o=>`<span class="dl-chip sorted-in p${o.priority}" style="border-color:${P_COLOR[o.priority]};color:${P_COLOR[o.priority]}">P${o.priority}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (step.pass === 2 && step.groups) {
+        innerHtml += `<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">`;
+        step.groups.forEach(g => {
+          innerHtml += `
+            <div class="priority-block">
+              <div class="pblock-head">
+                <span class="p-badge p${g.priority}">${g.priority}</span>
+                <span class="pblock-label" style="color:${P_COLOR[g.priority]}">${P_LABEL[g.priority]}</span>
+                <span class="pblock-count">${g.count} orders</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">DEADLINES BEFORE</div>
+                  <div class="deadline-row">
+                    ${g.deadlines_before.map(d=>`<span class="dl-chip">${d}h</span>`).join('')}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--green);letter-spacing:1px;margin-bottom:4px;">DEADLINES AFTER</div>
+                  <div class="deadline-row">
+                    ${g.deadlines_after.map(d=>`<span class="dl-chip sorted-in">${d}h</span>`).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        });
+        innerHtml += `</div>`;
+      }
+
+      div.innerHTML = innerHtml;
+      el.appendChild(div);
+    });
+  }
+
+  // ── Render priority groups ────────────────────────────────────────────────
+  function renderPriorityGroups(groups) {
+    const el = document.getElementById('priorityGrid');
+    el.innerHTML = '';
+    [1,2,3,4,5].forEach(p => {
+      const g = groups[p] || groups[String(p)];
+      const col = document.createElement('div');
+      col.className = 'pgroup-col';
+      col.innerHTML = `
+        <div class="pgroup-head">
+          <span class="p-badge p${p}">${p}</span>
+          <span class="pgroup-title" style="color:${P_COLOR[p]}">${P_LABEL[p]}</span>
+        </div>
+        <div class="pgroup-body" id="pg-body-${p}"></div>
+      `;
+      el.appendChild(col);
+
+      if (g) {
+        const body = col.querySelector('#pg-body-'+p);
+        // already sorted by deadline from backend
+        g.packages.forEach((pkg, i) => {
+          const d = document.createElement('div');
+          d.className = 'pgroup-pkg fade-in';
+          d.style.animationDelay = (i * 30) + 'ms';
+          d.style.background = `color-mix(in srgb, ${P_COLOR[p]} 4%, var(--surface2))`;
+          d.style.borderColor = `color-mix(in srgb, ${P_COLOR[p]} 12%, var(--border))`;
+          d.innerHTML = `
+            <span class="pgroup-pkg-id">${pkg.id}</span>
+            <span class="pgroup-pkg-dl" style="color:${P_COLOR[p]}">${pkg.deadline}h</span>
+          `;
+          body.appendChild(d);
+        });
+        if (!g.packages || g.packages.length === 0) {
+          body.innerHTML = `<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);padding:10px;">No orders</div>`;
+        }
+      } else {
+        col.querySelector('#pg-body-'+p).innerHTML =
+          `<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);padding:10px;">No orders</div>`;
+      }
+    });
+    document.getElementById('prioritySection').style.display = 'block';
+  }
+
+  // ── Render dispatch table ─────────────────────────────────────────────────
+  function renderDispatch(trips) {
+    const tbody = document.getElementById('dispatchBody');
+    tbody.innerHTML = '';
+    trips.forEach((t, i) => {
+      const cap  = VAN_CAP[t.van] || 100;
+      const pct  = Math.min(100, Math.round((t.load / cap) * 100));
+      const route = t.route_names.map((n,j) =>
+        `<span class="route-node-tag">${destShort(n)}</span>${j < t.route_names.length-1 ? '<span class="route-arrow">›</span>' : ''}`
+      ).join('');
+
+      const tr = document.createElement('tr');
+      tr.className = 'slide-row';
+      tr.style.animationDelay = (i * 30) + 'ms';
+      tr.innerHTML = `
+        <td><span class="trip-id">T-${String(i+1).padStart(3,'0')}</span></td>
+        <td style="color:var(--text);font-weight:500;">${destShort(t.destination)}</td>
+        <td><span style="font-size:10px;color:var(--muted)">${destShort(t.warehouse)}</span></td>
+        <td><span class="van-tag van-${t.van}">${t.van.toUpperCase()}</span></td>
+        <td>
+          <div class="load-cell">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;width:28px">${t.load}</span>
+            <div class="load-bar-bg">
+              <div class="load-bar-fill" style="width:${pct}%"></div>
+            </div>
+          </div>
+        </td>
+        <td><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue)">${t.distance}</span></td>
+        <td><span class="pkg-count">${t.packages.length}</span></td>
+        <td>
+          <div class="route-chain">${route}${t.has_bonus ? `<span class="bonus-tag">+BONUS</span>` : ''}</div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('tripsBadge').textContent = trips.length + ' trips';
+    document.getElementById('dispatchSection').style.display = 'block';
+  }
+
+  // ── Main run ──────────────────────────────────────────────────────────────
+  async function runOps() {
+    const btn = document.getElementById('runBtn');
+    const n   = document.getElementById('nSlider').value;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spin"></span> PROCESSING...';
+
+    // Clear panels
+    ['rawPanel','sortPanel','sortedPanel','priorityGrid','dispatchBody'].forEach(id => {
+      const e = document.getElementById(id);
+      if (e) e.innerHTML = '';
+    });
+    document.getElementById('prioritySection').style.display = 'none';
+    document.getElementById('dispatchSection').style.display = 'none';
+    document.getElementById('algoStrip').style.display = 'none';
+
+    let data;
+    try {
+      const res = await fetch(`/ops?n=${n}`);
+      data = await res.json();
+    } catch(e) {
+      btn.disabled = false;
+      btn.innerHTML = '▶ &nbsp; RUN PIPELINE';
+      return;
+    }
+
+    // Stats
+    document.getElementById('sTotal').textContent  = data.total_orders;
+    document.getElementById('sTrips').textContent  = data.total_trips;
+    document.getElementById('sGroups').textContent = Object.keys(data.priority_groups).length;
+    document.getElementById('sPasses').textContent = '2';
+
+    // Build a raw orders list (unsorted) — use sort_steps pass1 result reversed as proxy for raw
+    // The backend doesn't send raw separately, so reconstruct order from sorted (just show in original ID order)
+    const rawOrders = [...data.sorted_orders].sort((a,b) => {
+      const ai = parseInt(a.id.replace('PKG',''));
+      const bi = parseInt(b.id.replace('PKG',''));
+      return ai - bi;
+    });
+
+    // Render with staggered timing for visual effect
+    renderRawQueue(rawOrders);
+
+    await sleep(300);
+    renderSortEngine(data.sort_steps, rawOrders);
+
+    await sleep(400);
+    renderSortedQueue(data.sorted_orders);
+
+    await sleep(200);
+    renderPriorityGroups(data.priority_groups);
+
+    await sleep(100);
+    renderDispatch(data.trips);
+
+    document.getElementById('algoStrip').style.display = 'grid';
+
+    btn.disabled = false;
+    btn.innerHTML = '▶ &nbsp; RUN PIPELINE';
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
