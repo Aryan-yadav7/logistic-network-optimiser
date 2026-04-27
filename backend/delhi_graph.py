@@ -1,9 +1,12 @@
 NODES = {
+    # ── Warehouses (IDs 0–4) ─────────────────────────────────────────────────
     0:  {"name": "Naraina Industrial Area",     "lat": 28.6419, "lng": 77.1397, "type": "warehouse"},
     1:  {"name": "Okhla Industrial Estate",     "lat": 28.5355, "lng": 77.2720, "type": "warehouse"},
     2:  {"name": "Patparganj Industrial Area",  "lat": 28.6254, "lng": 77.3021, "type": "warehouse"},
     3:  {"name": "Mundka Industrial Area",      "lat": 28.6825, "lng": 77.0321, "type": "warehouse"},
     4:  {"name": "Badarpur Border Depot",       "lat": 28.5013, "lng": 77.2989, "type": "warehouse"},
+
+    # ── Original delivery nodes (IDs 5–19) ───────────────────────────────────
     5:  {"name": "IGI Airport",                 "lat": 28.5562, "lng": 77.1000, "type": "delivery"},
     6:  {"name": "Chandni Chowk",               "lat": 28.6505, "lng": 77.2303, "type": "delivery"},
     7:  {"name": "Delhi University",            "lat": 28.6900, "lng": 77.2127, "type": "delivery"},
@@ -19,61 +22,139 @@ NODES = {
     17: {"name": "Jawaharlal Nehru Stadium",    "lat": 28.5664, "lng": 77.2431, "type": "delivery"},
     18: {"name": "ITO",                         "lat": 28.6289, "lng": 77.2446, "type": "delivery"},
     19: {"name": "Rohini Sector 18",            "lat": 28.7374, "lng": 77.1333, "type": "delivery"},
+
+    # ── Extended delivery nodes (IDs 20–34) ──────────────────────────────────
+    20: {"name": "Karol Bagh",                  "lat": 28.6514, "lng": 77.1907, "type": "delivery"},
+    21: {"name": "Rajouri Garden",              "lat": 28.6481, "lng": 77.1217, "type": "delivery"},
+    22: {"name": "Vasant Kunj",                 "lat": 28.5205, "lng": 77.1567, "type": "delivery"},
+    23: {"name": "Sarita Vihar",                "lat": 28.5347, "lng": 77.2897, "type": "delivery"},
+    24: {"name": "Mayur Vihar Phase 1",         "lat": 28.6084, "lng": 77.2946, "type": "delivery"},
+    25: {"name": "Hauz Khas",                   "lat": 28.5494, "lng": 77.2001, "type": "delivery"},
+    26: {"name": "Preet Vihar",                 "lat": 28.6393, "lng": 77.2939, "type": "delivery"},
+    27: {"name": "Janakpuri",                   "lat": 28.6289, "lng": 77.0837, "type": "delivery"},
+    28: {"name": "Greater Kailash",             "lat": 28.5482, "lng": 77.2391, "type": "delivery"},
+    29: {"name": "Pitampura",                   "lat": 28.7005, "lng": 77.1350, "type": "delivery"},
+    30: {"name": "Shahdara",                    "lat": 28.6670, "lng": 77.2888, "type": "delivery"},
+    31: {"name": "Nehru Place",                 "lat": 28.5477, "lng": 77.2527, "type": "delivery"},
+    32: {"name": "Vasant Vihar",                "lat": 28.5709, "lng": 77.1533, "type": "delivery"},
+    33: {"name": "Uttam Nagar",                 "lat": 28.6211, "lng": 77.0534, "type": "delivery"},
+    34: {"name": "Dilshad Garden",              "lat": 28.6817, "lng": 77.3172, "type": "delivery"},
 }
 
 EDGES = [
-    # Naraina (0) — west-central warehouse
-    (0, 8,  6.2),   # Naraina → Connaught Place
-    (0, 5,  8.1),   # Naraina → IGI Airport
-    (0, 9,  9.3),   # Naraina → AIIMS
-    (0, 15, 6.8),   # Naraina → New Delhi Railway Station
+    # ── Naraina (0) ───────────────────────────────────────────────────────────
+    (0,  8,  6.2),
+    (0,  5,  8.1),
+    (0,  9,  9.3),
+    (0, 15,  6.8),
+    (0, 20,  5.4),
+    (0, 21,  4.1),
+    (0, 27,  8.7),
+    (0, 32,  7.9),
 
-    # Okhla (1) — south warehouse
-    (1, 4,  7.2),   # Okhla → Badarpur
-    (1, 10, 5.1),   # Okhla → Saket
-    (1, 13, 4.8),   # Okhla → Lajpat Nagar
-    (1, 12, 8.9),   # Okhla → Noida Sector 18
+    # ── Okhla (1) ─────────────────────────────────────────────────────────────
+    (1,  4,  7.2),
+    (1, 10,  5.1),
+    (1, 13,  4.8),
+    (1, 12,  8.9),
+    (1, 23,  5.3),
+    (1, 28,  4.2),
+    (1, 31,  3.9),
 
-    # Patparganj (2) — east warehouse
-    (2, 12, 6.4),   # Patparganj → Noida Sector 18
-    (2, 18, 7.1),   # Patparganj → ITO
-    (2, 6,  9.8),   # Patparganj → Chandni Chowk
+    # ── Patparganj (2) ────────────────────────────────────────────────────────
+    (2, 12,  6.4),
+    (2, 18,  7.1),
+    (2,  6,  9.8),
+    (2, 24,  5.2),
+    (2, 26,  4.7),
+    (2, 30,  8.3),
+    (2, 34, 10.1),
 
-    # Mundka (3) — northwest warehouse
-    (3, 19, 9.4),   # Mundka → Rohini
-    (3, 14, 11.2),  # Mundka → Dwarka
-    (3, 7,  13.5),  # Mundka → Delhi University
+    # ── Mundka (3) ────────────────────────────────────────────────────────────
+    (3, 19,  9.4),
+    (3, 14, 11.2),
+    (3,  7, 13.5),
+    (3, 29,  7.6),
+    (3, 33,  6.1),
+    (3, 27,  9.3),
 
-    # Badarpur (4) — south warehouse
-    (4, 11, 14.3),  # Badarpur → Cyberhub
-    (4, 10, 6.9),   # Badarpur → Saket
-    (4, 17, 8.2),   # Badarpur → JN Stadium
+    # ── Badarpur (4) ──────────────────────────────────────────────────────────
+    (4, 11, 14.3),
+    (4, 10,  6.9),
+    (4, 17,  8.2),
+    (4, 23,  4.1),
+    (4, 31,  5.8),
 
-    # Delivery point interconnections
-    (5,  14, 7.3),  # IGI Airport → Dwarka
-    (5,  11, 9.8),  # IGI Airport → Cyberhub
-    (6,  16, 1.8),  # Chandni Chowk → Kashmere Gate (very close)
-    (6,  15, 2.4),  # Chandni Chowk → New Delhi Railway Station
-    (6,  7,  4.2),  # Chandni Chowk → Delhi University
-    (7,  19, 8.1),  # Delhi University → Rohini
-    (7,  16, 4.6),  # Delhi University → Kashmere Gate
-    (8,  15, 1.9),  # Connaught Place → New Delhi Railway Station
-    (8,  9,  6.5),  # Connaught Place → AIIMS
-    (8,  18, 4.3),  # Connaught Place → ITO
-    (9,  10, 4.1),  # AIIMS → Saket
-    (9,  17, 3.8),  # AIIMS → JN Stadium
-    (10, 13, 3.2),  # Saket → Lajpat Nagar
-    (11, 14, 4.5),  # Cyberhub → Dwarka
-    (12, 13, 7.6),  # Noida → Lajpat Nagar
-    (13, 17, 2.9),  # Lajpat Nagar → JN Stadium
-    (15, 16, 3.1),  # New Delhi RS → Kashmere Gate
-    (16, 19, 11.2), # Kashmere Gate → Rohini
-    (17, 18, 4.7),  # JN Stadium → ITO
-    (18, 6,  3.9),  # ITO → Chandni Chowk
+    # ── Core delivery ─────────────────────────────────────────────────────────
+    (5,  14,  7.3),
+    (5,  11,  9.8),
+    (5,  22,  6.4),
+    (5,  32,  5.2),
+    (6,  16,  1.8),
+    (6,  15,  2.4),
+    (6,   7,  4.2),
+    (6,  18,  3.9),
+    (7,  19,  8.1),
+    (7,  16,  4.6),
+    (7,  29,  9.3),
+    (7,  30,  8.7),
+    (8,  15,  1.9),
+    (8,   9,  6.5),
+    (8,  18,  4.3),
+    (8,  20,  2.8),
+    (9,  10,  4.1),
+    (9,  17,  3.8),
+    (9,  25,  3.2),
+    (10, 13,  3.2),
+    (10, 25,  3.8),
+    (10, 28,  2.9),
+    (11, 14,  4.5),
+    (11, 22,  8.1),
+    (12, 13,  7.6),
+    (12, 24,  4.3),
+    (12, 26,  6.1),
+    (13, 17,  2.9),
+    (13, 28,  3.1),
+    (13, 31,  3.7),
+    (14, 33,  6.8),
+    (14, 27,  5.4),
+    (15, 16,  3.1),
+    (15, 20,  2.6),
+    (16, 19, 11.2),
+    (16, 30,  6.4),
+    (17, 18,  4.7),
+    (17, 23,  5.3),
+    (18,  6,  3.9),
+    (18, 24,  6.2),
+    (18, 26,  5.8),
+    (19, 29,  7.4),
+
+    # ── Extended nodes ────────────────────────────────────────────────────────
+    (20, 21,  5.7),
+    (20,  8,  2.8),
+    (21, 27,  6.2),
+    (21, 33,  9.4),
+    (22, 25,  5.1),
+    (22, 32,  3.7),
+    (23, 28,  5.6),
+    (23, 31,  4.2),
+    (24, 30,  7.1),
+    (24, 34,  5.3),
+    (25, 32,  4.6),
+    (25, 28,  4.0),
+    (26, 34,  7.2),
+    (27, 33,  4.3),
+    (28, 31,  2.4),
+    (29, 19,  7.4),
+    (30, 34,  4.8),
+    (32,  9,  5.8),
+    (32, 25,  4.6),
+    (33, 27,  4.3),
 ]
 
+
 def build_graph():
-    graph = {i: [] for i in range(20)}
+    graph = {i: [] for i in range(35)}
     for u, v, w in EDGES:
         graph[u].append((v, w))
         graph[v].append((u, w))  # undirected

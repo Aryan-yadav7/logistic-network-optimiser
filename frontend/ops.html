@@ -164,7 +164,7 @@
 
     /* ── Stats strip ── */
     .stats-strip {
-      display: grid; grid-template-columns: repeat(5, 1fr);
+      display: grid; grid-template-columns: repeat(6, 1fr);
       border-bottom: 1px solid var(--border);
     }
 
@@ -455,7 +455,7 @@
     /* ── Priority group heatmap ── */
     .priority-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       border-top: 1px solid var(--border);
     }
 
@@ -618,6 +618,10 @@
     <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px; line-height:1.5;">
       Quick Sort<br/>+ Merge Sort
     </div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-key">Queued Orders</div>
+    <div class="stat-num" style="color:var(--purple)" id="sPending">—</div>
   </div>
 </div>
 
@@ -999,6 +1003,11 @@
     document.getElementById('sTrips').textContent  = data.total_trips;
     document.getElementById('sGroups').textContent = Object.keys(data.priority_groups).length;
     document.getElementById('sPasses').textContent = '2';
+
+    // Fetch pending customer orders count
+    fetch('/stats').then(r=>r.json()).then(s=>{
+      document.getElementById('sPending').textContent = s.pending_customer_orders || 0;
+    }).catch(()=>{});
 
     // Build a raw orders list (unsorted) — use sort_steps pass1 result reversed as proxy for raw
     // The backend doesn't send raw separately, so reconstruct order from sorted (just show in original ID order)

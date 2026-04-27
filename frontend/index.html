@@ -9,1237 +9,1116 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --bg:         #F7F5F0;
-      --white:      #FFFFFF;
-      --ink:        #12100E;
-      --ink2:       #3D3A35;
-      --ink3:       #8C8880;
-      --border:     #E2DED7;
-      --border2:    #CCC8C0;
-
-      --accent:     #5B21B6;      /* deep violet */
-      --accent-l:   #EDE9FE;
-      --accent-m:   #C4B5FD;
-      --green:      #059669;
-      --green-l:    #D1FAE5;
-      --red:        #DC2626;
-      --red-l:      #FEE2E2;
-      --amber:      #D97706;
-      --amber-l:    #FEF3C7;
-      --blue:       #1D4ED8;
-      --blue-l:     #DBEAFE;
-
-      /* Priority palette */
-      --p1: #DC2626; --p1-l: #FEE2E2;
-      --p2: #D97706; --p2-l: #FEF3C7;
-      --p3: #2563EB; --p3-l: #DBEAFE;
-      --p4: #059669; --p4-l: #D1FAE5;
-      --p5: #6B7280; --p5-l: #F3F4F6;
+      --bg:       #F7F5F0; --white:  #FFFFFF;
+      --ink:      #12100E; --ink2:   #3D3A35; --ink3: #8C8880;
+      --border:   #E2DED7; --border2:#CCC8C0;
+      --accent:   #5B21B6; --accent-l:#EDE9FE; --accent-m:#C4B5FD;
+      --green:    #059669; --green-l:#D1FAE5;
+      --red:      #DC2626; --red-l:  #FEE2E2;
+      --amber:    #D97706; --amber-l:#FEF3C7;
+      --blue:     #1D4ED8; --blue-l: #DBEAFE;
+      --p1:#DC2626;--p1-l:#FEE2E2;
+      --p2:#D97706;--p2-l:#FEF3C7;
+      --p3:#2563EB;--p3-l:#DBEAFE;
+      --p4:#059669;--p4-l:#D1FAE5;
+      --p5:#6B7280;--p5-l:#F3F4F6;
     }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);font-family:'Syne',sans-serif;color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
-    * { margin:0; padding:0; box-sizing:border-box; }
+    /* ── Topbar ── */
+    .topbar{height:52px;background:var(--ink);display:flex;align-items:center;padding:0 24px;gap:0;flex-shrink:0;border-bottom:2px solid var(--accent);}
+    .logo{font-size:16px;font-weight:800;letter-spacing:-0.5px;color:#fff;margin-right:28px;}
+    .logo em{color:var(--accent-m);font-style:normal;}
+    .topbar-tabs{display:flex;align-items:stretch;gap:0;flex:1;}
+    .topbar-tab{padding:0 16px;height:52px;display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:0.5px;color:rgba(255,255,255,0.45);cursor:pointer;text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color 0.15s;}
+    .topbar-tab:hover{color:rgba(255,255,255,0.75);}
+    .topbar-tab.active{color:#fff;border-bottom-color:var(--accent-m);}
+    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+    .live-pill{display:flex;align-items:center;gap:6px;background:rgba(5,150,105,0.15);border:1px solid rgba(5,150,105,0.4);padding:4px 10px;border-radius:20px;}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+    .live-label{font-size:10px;font-weight:700;color:var(--green);letter-spacing:1px;}
+    .clock{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
 
-    body {
-      background: var(--bg);
-      font-family: 'Syne', sans-serif;
-      color: var(--ink);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+    /* ── Workspace ── */
+    .workspace{flex:1;display:grid;grid-template-columns:440px 1fr;overflow:hidden;}
 
-    /* ── Top bar ── */
-    .topbar {
-      height: 52px;
-      background: var(--ink);
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 0;
-      flex-shrink: 0;
-      border-bottom: 2px solid var(--accent);
-    }
+    /* ── Left panel ── */
+    .left-panel{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 
-    .logo {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: #fff;
-      margin-right: 32px;
-    }
-
-    .logo em { color: var(--accent-m); font-style: normal; }
-
-    .topbar-tabs { display: flex; align-items: stretch; gap: 0; flex: 1; }
-
-    .topbar-tab {
-      padding: 0 18px;
-      height: 52px;
-      display: flex; align-items: center;
-      font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
-      color: rgba(255,255,255,0.45);
-      cursor: pointer; text-decoration: none;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: color 0.15s;
-    }
-
-    .topbar-tab:hover { color: rgba(255,255,255,0.75); }
-    .topbar-tab.active { color: #fff; border-bottom-color: var(--accent-m); }
-
-    .topbar-right {
-      margin-left: auto;
-      display: flex; align-items: center; gap: 16px;
-    }
-
-    .live-pill {
-      display: flex; align-items: center; gap: 6px;
-      background: rgba(5,150,105,0.15);
-      border: 1px solid rgba(5,150,105,0.4);
-      padding: 4px 10px; border-radius: 20px;
-    }
-
-    .live-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--green);
-      animation: blink 2s infinite;
-    }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
-
-    .live-label { font-size: 10px; font-weight: 700; color: var(--green); letter-spacing: 1px; }
-
-    .clock {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px;
-    }
-
-    /* ── Main layout — left panel + map ── */
-    .workspace {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 440px 1fr;
-      overflow: hidden;
-    }
-
-    /* ── LEFT PANEL ── */
-    .left-panel {
-      background: var(--white);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    /* ── Tab bar inside left panel ── */
+    .panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .panel-tab{flex:1;padding:11px 0;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;text-align:center;transition:all 0.15s;}
+    .panel-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
     /* ── Control strip ── */
-    .control-strip {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      background: var(--white);
-      flex-shrink: 0;
-    }
+    .control-strip{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--white);flex-shrink:0;}
+    .ctrl-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .ctrl-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);}
+    .n-badge{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--accent);margin-right:4px;}
+    input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--border2);outline:none;cursor:pointer;border-radius:2px;}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(91,33,182,0.3);}
+    .run-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;border-radius:8px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .run-btn:hover{background:#4C1D95;transform:translateY(-1px);}
+    .run-btn:disabled{background:var(--accent-m);cursor:not-allowed;transform:none;}
+    .btn-spin{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
 
-    .ctrl-top {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-    }
-
-    .ctrl-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 1px;
-      text-transform: uppercase; color: var(--ink3);
-    }
-
-    .n-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 20px; font-weight: 600; color: var(--accent);
-      margin-right: 4px;
-    }
-
-    input[type=range] {
-      flex: 1;
-      -webkit-appearance: none; appearance: none;
-      height: 3px; background: var(--border2); outline: none; cursor: pointer;
-      border-radius: 2px;
-    }
-
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: var(--accent); border: 2px solid #fff;
-      box-shadow: 0 1px 4px rgba(91,33,182,0.3);
-    }
-
-    .run-btn {
-      width: 100%;
-      padding: 13px;
-      background: var(--accent); color: #fff;
-      border: none; cursor: pointer;
-      font-family: 'Syne', sans-serif;
-      font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
-      border-radius: 8px;
-      transition: all 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-
-    .run-btn:hover { background: #4C1D95; transform: translateY(-1px); }
-    .run-btn:disabled { background: var(--accent-m); cursor: not-allowed; transform: none; }
-
-    .btn-spin {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── Parallel vans indicator ── */
+    .parallel-strip{padding:8px 20px;border-bottom:1px solid var(--border);background:var(--accent-l);display:none;align-items:center;gap:10px;flex-shrink:0;}
+    .parallel-strip.visible{display:flex;}
+    .ps-label{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.5px;}
+    .van-indicators{display:flex;gap:6px;}
+    .van-ind{width:24px;height:24px;border-radius:50%;background:var(--white);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.3s;}
+    .van-ind.active{background:var(--accent);border-color:var(--accent);animation:van-pulse 1.5s infinite;}
+    .van-ind.done{background:var(--green);border-color:var(--green);}
+    @keyframes van-pulse{0%,100%{box-shadow:0 0 0 0 rgba(91,33,182,0.3)}50%{box-shadow:0 0 0 6px rgba(91,33,182,0)}}
 
     /* ── Stats row ── */
-    .stats-row {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .stat-cell {
-      padding: 12px 16px;
-      border-right: 1px solid var(--border);
-    }
-
-    .stat-cell:last-child { border-right: none; }
-    .stat-key { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ink3); margin-bottom: 4px; }
-    .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; color: var(--ink); }
-    .stat-val.v { color: var(--accent); }
-    .stat-val.g { color: var(--green); }
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .stat-cell{padding:10px 16px;border-right:1px solid var(--border);}
+    .stat-cell:last-child{border-right:none;}
+    .stat-key{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:3px;}
+    .stat-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--ink);}
+    .stat-val.v{color:var(--accent);}
+    .stat-val.g{color:var(--green);}
 
     /* ── Queue header ── */
-    .queue-header {
-      padding: 10px 20px 8px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .queue-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink3); }
-
-    .queue-sub { font-size: 10px; color: var(--ink3); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+    .queue-header{padding:9px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+    .queue-title{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink3);}
+    .queue-sub{font-size:10px;color:var(--ink3);margin-left:auto;font-family:'JetBrains Mono',monospace;}
 
     /* ── Order list ── */
-    .order-list {
-      flex: 1;
-      overflow-y: auto;
-    }
+    .order-list{flex:1;overflow-y:auto;}
+    .order-list::-webkit-scrollbar{width:3px;}
+    .order-list::-webkit-scrollbar-thumb{background:var(--border2);}
+    .p-divider{padding:5px 20px 3px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+    .order-item{display:grid;grid-template-columns:20px 48px 1fr 60px;align-items:center;gap:8px;padding:9px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;position:relative;}
+    .order-item:hover{background:var(--bg);}
+    .order-item.active-order{background:var(--accent-l);}
+    .order-item.done-order{opacity:0.45;}
+    .order-item.active-order::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);}
+    .order-item.done-order::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green);}
+    .p-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .order-id-col{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);}
+    .order-dest-col{font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .order-meta-col{font-size:9px;color:var(--ink3);line-height:1.4;font-family:'JetBrains Mono',monospace;}
+    .order-status-col{text-align:right;}
+    .o-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.3px;padding:2px 7px;border-radius:4px;}
+    .ob-waiting{background:var(--bg);color:var(--ink3);border:1px solid var(--border2);}
+    .ob-packing{background:var(--amber-l);color:var(--amber);}
+    .ob-enroute{background:var(--accent-l);color:var(--accent);}
+    .ob-traffic{background:var(--red-l);color:var(--red);}
+    .ob-rerouting{background:var(--amber-l);color:var(--amber);}
+    .ob-delivered{background:var(--green-l);color:var(--green);}
 
-    .order-list::-webkit-scrollbar { width: 3px; }
-    .order-list::-webkit-scrollbar-thumb { background: var(--border2); }
+    /* ── Active detail ── */
+    .active-detail{border-top:1px solid var(--border);flex-shrink:0;background:var(--white);}
+    .detail-header{padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+    .detail-title{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink3);}
+    .stepper{display:flex;align-items:center;padding:12px 20px 8px;gap:0;}
+    .step-node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;}
+    .step-circle{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--ink3);transition:all 0.35s;}
+    .step-circle.s-done{background:var(--green);border-color:var(--green);color:#fff;}
+    .step-circle.s-active{background:var(--accent);border-color:var(--accent);color:#fff;animation:pulse-step 2s infinite;}
+    @keyframes pulse-step{0%,100%{box-shadow:0 0 0 0 rgba(91,33,182,0.3)}50%{box-shadow:0 0 0 6px rgba(91,33,182,0)}}
+    .step-lbl{font-size:8px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink3);text-align:center;}
+    .step-lbl.sl-done{color:var(--green);}
+    .step-lbl.sl-active{color:var(--accent);}
+    .step-bar{flex:1;height:2px;background:var(--border2);margin-bottom:12px;transition:background 0.4s;}
+    .step-bar.done{background:var(--green);}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border);}
+    .info-cell{padding:8px 20px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+    .info-cell:nth-child(2n){border-right:none;}
+    .ic-key{font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--ink3);margin-bottom:2px;}
+    .ic-val{font-size:12px;font-weight:600;color:var(--ink);}
+    .ic-val.mono{font-family:'JetBrains Mono',monospace;font-size:11px;}
+    .traffic-strip{background:var(--red-l);border-top:2px solid var(--red);padding:8px 20px;display:none;animation:slide-in 0.25s ease;}
+    .traffic-strip.visible{display:block;}
+    @keyframes slide-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+    .ts-title{font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;display:flex;align-items:center;gap:6px;}
+    .ts-body{font-size:11px;color:#7F1D1D;line-height:1.5;}
+    .reroute-strip{background:var(--green-l);border-top:2px solid var(--green);padding:8px 20px;display:none;animation:slide-in 0.25s ease;}
+    .reroute-strip.visible{display:block;}
+    .rs-title{font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;display:flex;align-items:center;gap:6px;}
+    .rs-body{font-size:11px;color:#065F46;line-height:1.5;}
 
-    /* Priority divider */
-    .p-divider {
-      padding: 6px 20px 4px;
-      font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 8px;
-    }
+    /* ── Place order panel ── */
+    .place-order-panel{flex:1;overflow-y:auto;padding:20px;display:none;}
+    .place-order-panel.visible{display:block;}
+    .form-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:16px;}
+    .form-group{margin-bottom:14px;}
+    .form-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;display:block;}
+    .form-input{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:6px;font-family:'Syne',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;transition:border-color 0.15s;}
+    .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l);}
+    .form-select{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:6px;font-family:'Syne',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;cursor:pointer;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .priority-picker{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+    .p-pick{padding:8px 4px;border:2px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all 0.15s;font-size:11px;font-weight:700;}
+    .p-pick:hover{border-color:var(--accent-m);}
+    .p-pick.selected{border-color:var(--accent);background:var(--accent-l);color:var(--accent);}
+    .submit-btn{width:100%;padding:12px;background:var(--green);color:#fff;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;border-radius:8px;margin-top:4px;transition:background 0.15s;}
+    .submit-btn:hover{background:#047857;}
+    .order-success{background:var(--green-l);border:1px solid var(--green);border-radius:8px;padding:14px 16px;margin-top:12px;display:none;}
+    .order-success.visible{display:block;}
+    .os-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px;}
+    .os-body{font-size:12px;color:#065F46;line-height:1.5;}
 
-    /* Order row */
-    .order-item {
-      display: grid;
-      grid-template-columns: 24px 48px 1fr 56px 60px;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 20px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.12s;
-      position: relative;
-    }
+    /* ── History panel ── */
+    .history-panel{flex:1;overflow-y:auto;display:none;}
+    .history-panel.visible{display:flex;flex-direction:column;}
+    .hist-section{border-bottom:1px solid var(--border);}
+    .hist-section-head{padding:10px 20px;background:var(--bg);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);display:flex;align-items:center;justify-content:space-between;}
+    .hist-row{display:grid;grid-template-columns:56px 1fr 60px 60px;align-items:center;gap:8px;padding:8px 20px;border-bottom:1px solid var(--border);font-size:11px;}
+    .hist-row:last-child{border-bottom:none;}
+    .hist-id{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);}
+    .hist-dest{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hist-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);}
+    .hist-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;}
+    .hb-small{background:#D1FAE5;color:#065F46;}
+    .hb-medium{background:#DBEAFE;color:#1E40AF;}
+    .hb-large{background:#EDE9FE;color:#5B21B6;}
+    .hist-empty{padding:30px 20px;text-align:center;color:var(--ink3);font-size:12px;}
 
-    .order-item:hover { background: var(--bg); }
-    .order-item.active-order { background: var(--accent-l); }
-    .order-item.done-order   { opacity: 0.45; }
-
-    .order-item.active-order::before {
-      content: '';
-      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-      background: var(--accent);
-    }
-
-    .order-item.done-order::before {
-      content: '';
-      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-      background: var(--green);
-    }
-
-    .p-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-    }
-
-    .order-id-col {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; color: var(--ink3);
-    }
-
-    .order-dest-col {
-      font-size: 12px; font-weight: 600; color: var(--ink);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .order-meta-col {
-      font-size: 10px; color: var(--ink3); line-height: 1.4;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .order-status-col {
-      text-align: right;
-    }
-
-    .o-badge {
-      display: inline-block;
-      font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
-      padding: 2px 7px; border-radius: 4px;
-    }
-
-    .ob-waiting    { background: var(--bg); color: var(--ink3); border: 1px solid var(--border2); }
-    .ob-packing    { background: var(--amber-l); color: var(--amber); }
-    .ob-enroute    { background: var(--accent-l); color: var(--accent); }
-    .ob-traffic    { background: var(--red-l); color: var(--red); }
-    .ob-rerouting  { background: var(--amber-l); color: var(--amber); }
-    .ob-delivered  { background: var(--green-l); color: var(--green); }
-
-    /* ── Active order detail ── */
-    .active-detail {
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-      background: var(--white);
-    }
-
-    .detail-header {
-      padding: 12px 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .detail-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink3); }
-
-    /* Progress stepper */
-    .stepper {
-      display: flex; align-items: center;
-      padding: 14px 20px 10px;
-      gap: 0;
-    }
-
-    .step-node {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4px; flex: 0 0 auto;
-    }
-
-    .step-circle {
-      width: 26px; height: 26px; border-radius: 50%;
-      border: 2px solid var(--border2);
-      background: var(--white);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 700; color: var(--ink3);
-      transition: all 0.35s;
-    }
-
-    .step-circle.s-done   { background: var(--green); border-color: var(--green); color: #fff; }
-    .step-circle.s-active { background: var(--accent); border-color: var(--accent); color: #fff; animation: pulse-step 2s infinite; }
-
-    @keyframes pulse-step {
-      0%,100% { box-shadow: 0 0 0 0 rgba(91,33,182,0.3); }
-      50%      { box-shadow: 0 0 0 6px rgba(91,33,182,0); }
-    }
-
-    .step-lbl { font-size: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink3); text-align: center; }
-    .step-lbl.sl-done   { color: var(--green); }
-    .step-lbl.sl-active { color: var(--accent); }
-
-    .step-bar { flex: 1; height: 2px; background: var(--border2); margin-bottom: 14px; transition: background 0.4s; }
-    .step-bar.done { background: var(--green); }
-
-    /* Info grid */
-    .info-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .info-cell {
-      padding: 10px 20px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .info-cell:nth-child(2n) { border-right: none; }
-
-    .ic-key { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink3); margin-bottom: 3px; }
-    .ic-val { font-size: 13px; font-weight: 600; color: var(--ink); }
-    .ic-val.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-
-    /* Traffic alert strip */
-    .traffic-strip {
-      background: var(--red-l);
-      border-top: 2px solid var(--red);
-      padding: 10px 20px;
-      display: none;
-      animation: slide-in 0.25s ease;
-    }
-
-    .traffic-strip.visible { display: block; }
-
-    @keyframes slide-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
-
-    .ts-title { font-size: 12px; font-weight: 700; color: var(--red); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-    .ts-body  { font-size: 11px; color: #7F1D1D; line-height: 1.5; }
-
-    .reroute-strip {
-      background: var(--green-l);
-      border-top: 2px solid var(--green);
-      padding: 10px 20px;
-      display: none;
-      animation: slide-in 0.25s ease;
-    }
-
-    .reroute-strip.visible { display: block; }
-    .rs-title { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
-    .rs-body  { font-size: 11px; color: #065F46; line-height: 1.5; }
-
-    /* ── RIGHT — MAP ── */
-    .map-panel {
-      position: relative;
-      background: #E8E4DE;
-    }
-
-    #deliveryMap {
-      width: 100%; height: 100%;
-    }
-
-    /* Map overlay top-right: route chain */
-    .map-overlay {
-      position: absolute;
-      top: 16px; right: 16px;
-      z-index: 1000;
-      background: rgba(255,255,255,0.96);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      min-width: 220px;
-      max-width: 280px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      display: none;
-    }
-
-    .map-overlay.visible { display: block; }
-
-    .mo-label {
-      font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-      color: var(--ink3); margin-bottom: 10px;
-    }
-
-    .route-chain {
-      display: flex; flex-direction: column; gap: 0;
-    }
-
-    .rc-node {
-      display: flex; align-items: center; gap: 8px;
-      padding: 4px 0;
-      opacity: 0.35;
-      transition: opacity 0.3s;
-    }
-
-    .rc-node.rc-visited { opacity: 1; }
-    .rc-node.rc-current { opacity: 1; }
-    .rc-node.rc-rerouted { opacity: 1; }
-
-    .rc-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      border: 2px solid var(--border2);
-      background: var(--white); flex-shrink: 0;
-      transition: all 0.3s;
-    }
-
-    .rc-node.rc-visited .rc-dot  { background: var(--green);  border-color: var(--green); }
-    .rc-node.rc-current .rc-dot  { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-l); }
-    .rc-node.rc-rerouted .rc-dot { background: var(--amber);  border-color: var(--amber); }
-
-    .rc-name { font-size: 11px; font-weight: 600; color: var(--ink2); }
-    .rc-node.rc-current .rc-name { color: var(--accent); }
-
-    .rc-tag {
-      margin-left: auto; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
-    }
-
-    .rc-connector {
-      width: 2px; height: 10px; margin-left: 3px;
-      background: var(--border); border-radius: 1px;
-    }
-
-    .rc-reroute-label {
-      font-size: 9px; font-weight: 700; color: var(--amber);
-      letter-spacing: 0.5px; padding: 4px 0 2px;
-    }
-
-    /* Map bottom overlay: live status */
-    .map-status-bar {
-      position: absolute;
-      bottom: 24px; left: 50%; transform: translateX(-50%);
-      z-index: 1000;
-      background: var(--ink);
-      border-radius: 30px;
-      padding: 10px 20px;
-      display: none;
-      align-items: center; gap: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-      white-space: nowrap;
-    }
-
-    .map-status-bar.visible { display: flex; }
-
-    .msb-item {
-      display: flex; align-items: center; gap: 6px;
-    }
-
-    .msb-label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.5px; }
-    .msb-val   { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 500; }
-
-    .msb-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.15); }
-
-    .msb-van {
-      background: var(--accent);
-      color: #fff;
-      font-size: 11px; font-weight: 700;
-      padding: 3px 10px; border-radius: 20px;
-    }
-
-    /* Leaflet tooltip */
-    .leaflet-tooltip.tt-custom {
-      background: var(--ink) !important;
-      color: #fff !important;
-      border: none !important;
-      border-radius: 6px !important;
-      font-family: 'Syne', sans-serif !important;
-      font-size: 11px !important;
-      font-weight: 600 !important;
-      padding: 4px 9px !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-    }
-
-    .leaflet-tooltip.tt-custom::before { display: none !important; }
-
-    /* empty state */
-    .map-empty {
-      position: absolute; inset: 0; display: flex;
-      flex-direction: column; align-items: center; justify-content: center;
-      z-index: 999; pointer-events: none;
-    }
-
-    .map-empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
-    .map-empty-text { font-size: 14px; font-weight: 600; color: var(--ink3); }
+    /* ── Map panel ── */
+    .map-panel{position:relative;background:#E8E4DE;}
+    #deliveryMap{width:100%;height:100%;}
+    .map-overlay{position:absolute;top:16px;right:16px;z-index:1000;background:rgba(255,255,255,0.96);border:1px solid var(--border);border-radius:10px;padding:12px 14px;min-width:200px;max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,0.1);display:none;max-height:50vh;overflow-y:auto;}
+    .map-overlay.visible{display:block;}
+    .mo-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+    .route-chain{display:flex;flex-direction:column;gap:0;}
+    .rc-node{display:flex;align-items:center;gap:8px;padding:3px 0;opacity:0.35;transition:opacity 0.3s;}
+    .rc-node.rc-visited,.rc-node.rc-current,.rc-node.rc-rerouted{opacity:1;}
+    .rc-dot{width:7px;height:7px;border-radius:50%;border:2px solid var(--border2);background:var(--white);flex-shrink:0;transition:all 0.3s;}
+    .rc-node.rc-visited .rc-dot{background:var(--green);border-color:var(--green);}
+    .rc-node.rc-current .rc-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l);}
+    .rc-node.rc-rerouted .rc-dot{background:var(--amber);border-color:var(--amber);}
+    .rc-name{font-size:10px;font-weight:600;color:var(--ink2);}
+    .rc-node.rc-current .rc-name{color:var(--accent);}
+    .rc-tag{margin-left:auto;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;}
+    .rc-connector{width:2px;height:8px;margin-left:2px;background:var(--border);border-radius:1px;}
+    .rc-reroute-label{font-size:9px;font-weight:700;color:var(--amber);letter-spacing:0.5px;padding:3px 0 2px;}
+    .map-status-bar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--ink);border-radius:30px;padding:8px 18px;display:none;align-items:center;gap:14px;box-shadow:0 4px 24px rgba(0,0,0,0.25);white-space:nowrap;}
+    .map-status-bar.visible{display:flex;}
+    .msb-item{display:flex;align-items:center;gap:5px;}
+    .msb-label{font-size:10px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:0.5px;}
+    .msb-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;font-weight:500;}
+    .msb-divider{width:1px;height:14px;background:rgba(255,255,255,0.15);}
+    .msb-van{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;}
+    .leaflet-tooltip.tt-custom{background:var(--ink)!important;color:#fff!important;border:none!important;border-radius:6px!important;font-family:'Syne',sans-serif!important;font-size:11px!important;font-weight:600!important;padding:4px 9px!important;box-shadow:0 2px 8px rgba(0,0,0,0.2)!important;}
+    .leaflet-tooltip.tt-custom::before{display:none!important;}
+    .map-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;pointer-events:none;}
+    .map-empty-icon{font-size:48px;margin-bottom:12px;opacity:0.3;}
+    .map-empty-text{font-size:14px;font-weight:600;color:var(--ink3);}
   </style>
 </head>
 <body>
 
-<!-- ── Top bar ── -->
 <div class="topbar">
   <div class="logo">Delhi<em>Dash</em></div>
   <div class="topbar-tabs">
-    <a href="/"           class="topbar-tab active">Dispatch Centre</a>
+    <a href="/" class="topbar-tab active">Dispatch Centre</a>
     <a href="/operations" class="topbar-tab">Operations</a>
   </div>
   <div class="topbar-right">
-    <div class="live-pill">
-      <div class="live-dot"></div>
-      <div class="live-label">LIVE</div>
-    </div>
+    <div class="live-pill"><div class="live-dot"></div><div class="live-label">LIVE</div></div>
     <div class="clock" id="clock">--:--:--</div>
   </div>
 </div>
 
-<!-- ── Workspace ── -->
 <div class="workspace">
-
-  <!-- ── LEFT PANEL ── -->
   <div class="left-panel">
 
-    <!-- Control strip -->
-    <div class="control-strip">
-      <div class="ctrl-top">
-        <div class="ctrl-label">Orders to process</div>
-        <span class="n-badge" id="nVal">16</span>
-        <input type="range" id="nSlider" min="8" max="36" value="16"
-               oninput="document.getElementById('nVal').textContent=this.value"/>
-      </div>
-      <button class="run-btn" id="runBtn" onclick="startSession()">
-        ▶ &nbsp; LOAD &amp; DISPATCH ORDERS
-      </button>
+    <!-- Inner tab bar -->
+    <div class="panel-tabs">
+      <div class="panel-tab active" id="tab-dispatch" onclick="switchTab('dispatch')">Dispatch</div>
+      <div class="panel-tab" id="tab-place" onclick="switchTab('place')">Place Order</div>
+      <div class="panel-tab" id="tab-history" onclick="switchTab('history')">History</div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-cell">
-        <div class="stat-key">Total Orders</div>
-        <div class="stat-val v" id="sTot">—</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-key">Delivered</div>
-        <div class="stat-val g" id="sDone">—</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-key">Remaining</div>
-        <div class="stat-val" id="sRem">—</div>
-      </div>
-    </div>
+    <!-- ── DISPATCH TAB ── -->
+    <div id="pane-dispatch" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
 
-    <!-- Queue header -->
-    <div class="queue-header">
-      <div class="queue-title">Sorted Queue</div>
-      <div class="queue-sub" id="queueSub">Priority → Deadline</div>
-    </div>
-
-    <!-- Order list -->
-    <div class="order-list" id="orderList">
-      <div style="padding:40px 20px;text-align:center;color:var(--ink3);font-size:12px;">
-        Load orders to see the sorted queue
-      </div>
-    </div>
-
-    <!-- Active order detail -->
-    <div class="active-detail" id="activeDetail" style="display:none">
-
-      <div class="detail-header">
-        <div class="detail-title" id="detailTitle">Active Order</div>
-        <div class="o-badge ob-enroute" id="detailBadge">En Route</div>
+      <div class="control-strip">
+        <div class="ctrl-top">
+          <div class="ctrl-label">Orders</div>
+          <span class="n-badge" id="nVal">16</span>
+          <input type="range" id="nSlider" min="8" max="36" value="16" oninput="document.getElementById('nVal').textContent=this.value"/>
+        </div>
+        <button class="run-btn" id="runBtn" onclick="startSession()">▶ &nbsp; DISPATCH PARALLEL FLEET</button>
       </div>
 
-      <!-- Stepper -->
-      <div class="stepper">
-        <div class="step-node">
-          <div class="step-circle" id="sp1">1</div>
-          <div class="step-lbl"   id="sl1">Placed</div>
-        </div>
-        <div class="step-bar" id="sb1"></div>
-        <div class="step-node">
-          <div class="step-circle" id="sp2">2</div>
-          <div class="step-lbl"   id="sl2">Packed</div>
-        </div>
-        <div class="step-bar" id="sb2"></div>
-        <div class="step-node">
-          <div class="step-circle" id="sp3">3</div>
-          <div class="step-lbl"   id="sl3">Sent</div>
-        </div>
-        <div class="step-bar" id="sb3"></div>
-        <div class="step-node">
-          <div class="step-circle" id="sp4">4</div>
-          <div class="step-lbl"   id="sl4">Moving</div>
-        </div>
-        <div class="step-bar" id="sb4"></div>
-        <div class="step-node">
-          <div class="step-circle" id="sp5">✓</div>
-          <div class="step-lbl"   id="sl5">Done</div>
-        </div>
+      <!-- Parallel vans indicator -->
+      <div class="parallel-strip" id="parallelStrip">
+        <div class="ps-label">ACTIVE VANS</div>
+        <div class="van-indicators" id="vanIndicators"></div>
+        <div style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);" id="parallelProgress"></div>
       </div>
 
-      <!-- Info grid -->
-      <div class="info-grid">
-        <div class="info-cell">
-          <div class="ic-key">Order ID</div>
-          <div class="ic-val mono" id="icOrderId">—</div>
-        </div>
-        <div class="info-cell">
-          <div class="ic-key">Destination</div>
-          <div class="ic-val" id="icDest">—</div>
-        </div>
-        <div class="info-cell">
-          <div class="ic-key">Warehouse</div>
-          <div class="ic-val" id="icWh">—</div>
-        </div>
-        <div class="info-cell">
-          <div class="ic-key">Van · Load</div>
-          <div class="ic-val mono" id="icVan">—</div>
-        </div>
-        <div class="info-cell">
-          <div class="ic-key">Distance</div>
-          <div class="ic-val mono" id="icDist">—</div>
-        </div>
-        <div class="info-cell">
-          <div class="ic-key">Current Node</div>
-          <div class="ic-val" id="icNode">—</div>
-        </div>
+      <div class="stats-row">
+        <div class="stat-cell"><div class="stat-key">Total Orders</div><div class="stat-val v" id="sTot">—</div></div>
+        <div class="stat-cell"><div class="stat-key">Delivered</div><div class="stat-val g" id="sDone">—</div></div>
+        <div class="stat-cell"><div class="stat-key">Active Vans</div><div class="stat-val" id="sVans">—</div></div>
       </div>
 
-      <!-- Traffic / reroute strips -->
-      <div class="traffic-strip" id="trafficStrip">
-        <div class="ts-title">🚦 Traffic Detected</div>
-        <div class="ts-body" id="tsBody">Congestion detected. Recalculating route…</div>
-      </div>
-      <div class="reroute-strip" id="rerouteStrip">
-        <div class="rs-title">✅ Route Recalculated</div>
-        <div class="rs-body" id="rsBody">New optimal path found. Van rerouted.</div>
+      <div class="queue-header">
+        <div class="queue-title">Sorted Queue</div>
+        <div class="queue-sub" id="queueSub">Priority → Deadline</div>
       </div>
 
-    </div>
-  </div>
+      <div class="order-list" id="orderList">
+        <div style="padding:40px 20px;text-align:center;color:var(--ink3);font-size:12px;">Load orders to see the sorted queue</div>
+      </div>
 
-  <!-- ── RIGHT — MAP ── -->
+      <div class="active-detail" id="activeDetail" style="display:none">
+        <div class="detail-header">
+          <div class="detail-title" id="detailTitle">Active Order</div>
+          <div class="o-badge ob-enroute" id="detailBadge">En Route</div>
+        </div>
+        <div class="stepper">
+          <div class="step-node"><div class="step-circle" id="sp1">1</div><div class="step-lbl" id="sl1">Placed</div></div>
+          <div class="step-bar" id="sb1"></div>
+          <div class="step-node"><div class="step-circle" id="sp2">2</div><div class="step-lbl" id="sl2">Packed</div></div>
+          <div class="step-bar" id="sb2"></div>
+          <div class="step-node"><div class="step-circle" id="sp3">3</div><div class="step-lbl" id="sl3">Sent</div></div>
+          <div class="step-bar" id="sb3"></div>
+          <div class="step-node"><div class="step-circle" id="sp4">4</div><div class="step-lbl" id="sl4">Moving</div></div>
+          <div class="step-bar" id="sb4"></div>
+          <div class="step-node"><div class="step-circle" id="sp5">✓</div><div class="step-lbl" id="sl5">Done</div></div>
+        </div>
+        <div class="info-grid">
+          <div class="info-cell"><div class="ic-key">Order ID</div><div class="ic-val mono" id="icOrderId">—</div></div>
+          <div class="info-cell"><div class="ic-key">Destination</div><div class="ic-val" id="icDest">—</div></div>
+          <div class="info-cell"><div class="ic-key">Warehouse</div><div class="ic-val" id="icWh">—</div></div>
+          <div class="info-cell"><div class="ic-key">Van · Load</div><div class="ic-val mono" id="icVan">—</div></div>
+          <div class="info-cell"><div class="ic-key">Distance</div><div class="ic-val mono" id="icDist">—</div></div>
+          <div class="info-cell"><div class="ic-key">Current Node</div><div class="ic-val" id="icNode">—</div></div>
+        </div>
+        <div class="traffic-strip" id="trafficStrip">
+          <div class="ts-title">🚦 Traffic Detected</div>
+          <div class="ts-body" id="tsBody">Congestion detected. Recalculating route…</div>
+        </div>
+        <div class="reroute-strip" id="rerouteStrip">
+          <div class="rs-title">✅ Route Recalculated</div>
+          <div class="rs-body" id="rsBody">New optimal path found.</div>
+        </div>
+      </div>
+    </div><!-- /pane-dispatch -->
+
+    <!-- ── PLACE ORDER TAB ── -->
+    <div id="pane-place" style="display:none;flex:1;overflow-y:auto;">
+      <div class="place-order-panel visible">
+        <div class="form-title">📦 Place a Delivery Order</div>
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" id="fo-name" type="text" placeholder="e.g. Priya Sharma"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone (optional)</label>
+          <input class="form-input" id="fo-phone" type="text" placeholder="+91 98765 43210"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery Destination</label>
+          <select class="form-select" id="fo-dest"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Weight (kg)</label>
+            <input class="form-input" id="fo-weight" type="number" min="0.1" max="30" step="0.1" placeholder="e.g. 2.5"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deadline (hours)</label>
+            <input class="form-input" id="fo-deadline" type="number" min="1" max="72" placeholder="e.g. 24"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <div class="priority-picker" id="priorityPicker">
+            <div class="p-pick" data-p="1" onclick="selectPriority(1)" style="border-color:#DC2626;color:#DC2626;">P1<br/><span style="font-size:8px;font-weight:400">Critical</span></div>
+            <div class="p-pick" data-p="2" onclick="selectPriority(2)" style="border-color:#D97706;color:#D97706;">P2<br/><span style="font-size:8px;font-weight:400">High</span></div>
+            <div class="p-pick selected" data-p="3" onclick="selectPriority(3)" style="border-color:#2563EB;color:#2563EB;">P3<br/><span style="font-size:8px;font-weight:400">Medium</span></div>
+            <div class="p-pick" data-p="4" onclick="selectPriority(4)" style="border-color:#059669;color:#059669;">P4<br/><span style="font-size:8px;font-weight:400">Low</span></div>
+            <div class="p-pick" data-p="5" onclick="selectPriority(5)" style="border-color:#6B7280;color:#6B7280;">P5<br/><span style="font-size:8px;font-weight:400">Minimal</span></div>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="submitOrder()">✓ &nbsp; PLACE ORDER</button>
+        <div class="order-success" id="orderSuccess">
+          <div class="os-title">✅ Order Placed!</div>
+          <div class="os-body" id="orderSuccessBody">Your order will be dispatched in the next batch.</div>
+        </div>
+      </div>
+    </div><!-- /pane-place -->
+
+    <!-- ── HISTORY TAB ── -->
+    <div id="pane-history" style="display:none;flex:1;overflow-y:auto;">
+      <div class="history-panel visible" id="historyPanel">
+        <div class="hist-section">
+          <div class="hist-section-head">
+            <span>Recent Trips</span>
+            <button onclick="loadHistory()" style="background:none;border:1px solid var(--border2);padding:3px 9px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--ink3);">↺ Refresh</button>
+          </div>
+          <div id="historyTrips"><div class="hist-empty">No history yet — run a dispatch session first</div></div>
+        </div>
+        <div class="hist-section">
+          <div class="hist-section-head"><span>Customer Orders</span></div>
+          <div id="historyCustomer"><div class="hist-empty">No customer orders yet</div></div>
+        </div>
+        <div class="hist-section">
+          <div class="hist-section-head"><span>Sessions</span></div>
+          <div id="historySession"><div class="hist-empty">No sessions recorded</div></div>
+        </div>
+      </div>
+    </div><!-- /pane-history -->
+
+  </div><!-- /left-panel -->
+
+  <!-- ── MAP ── -->
   <div class="map-panel">
     <div id="deliveryMap"></div>
-
     <div class="map-empty" id="mapEmpty">
       <div class="map-empty-icon">🗺️</div>
       <div class="map-empty-text">Load orders to begin live tracking</div>
     </div>
-
-    <!-- Route chain overlay -->
     <div class="map-overlay" id="mapOverlay">
       <div class="mo-label">Route Progress</div>
       <div class="route-chain" id="routeChain"></div>
     </div>
-
-    <!-- Status bar -->
     <div class="map-status-bar" id="mapStatusBar">
-      <div class="msb-item">
-        <div class="msb-label">VAN</div>
-        <div class="msb-van" id="msbVan">—</div>
-      </div>
+      <div class="msb-item"><div class="msb-label">VAN</div><div class="msb-van" id="msbVan">—</div></div>
       <div class="msb-divider"></div>
-      <div class="msb-item">
-        <div class="msb-label">AT</div>
-        <div class="msb-val" id="msbAt">—</div>
-      </div>
+      <div class="msb-item"><div class="msb-label">AT</div><div class="msb-val" id="msbAt">—</div></div>
       <div class="msb-divider"></div>
-      <div class="msb-item">
-        <div class="msb-label">ETA</div>
-        <div class="msb-val" id="msbEta">—</div>
-      </div>
+      <div class="msb-item"><div class="msb-label">ETA</div><div class="msb-val" id="msbEta">—</div></div>
       <div class="msb-divider"></div>
-      <div class="msb-item">
-        <div class="msb-label">ORDER</div>
-        <div class="msb-val" id="msbOrder">—</div>
-      </div>
+      <div class="msb-item"><div class="msb-label">ORDER</div><div class="msb-val" id="msbOrder">—</div></div>
     </div>
   </div>
-
 </div>
 
 <script>
-// ── Clock ────────────────────────────────────────────────────────────────
-setInterval(() => {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-IN', {hour12: false});
-}, 1000);
+// ── Clock ────────────────────────────────────────────────────────────────────
+setInterval(()=>{ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }, 1000);
 
-// ── Constants ────────────────────────────────────────────────────────────
-const P_COLOR = { 1:'#DC2626', 2:'#D97706', 3:'#2563EB', 4:'#059669', 5:'#6B7280' };
-const P_LABEL = { 1:'CRITICAL', 2:'HIGH', 3:'MEDIUM', 4:'LOW', 5:'MINIMAL' };
-const VAN_CAP = { Small:30, Medium:60, Large:100 };
-const VAN_NAMES = ['Small', 'Medium', 'Large'];
+// ── Constants ────────────────────────────────────────────────────────────────
+const P_COLOR = {1:'#DC2626',2:'#D97706',3:'#2563EB',4:'#059669',5:'#6B7280'};
+const P_LABEL = {1:'CRITICAL',2:'HIGH',3:'MEDIUM',4:'LOW',5:'MINIMAL'};
+// Van configs defined below with VAN_CONFIGS
+const MAX_PARALLEL = 3;  // max simultaneous vans on map
 
-// ── State ────────────────────────────────────────────────────────────────
-let dMap       = null;
-let mapLayers  = [];
-let vanMarker  = null;
-let sessionRunning = false;
-
-// ── Helpers ──────────────────────────────────────────────────────────────
-const el   = id => document.getElementById(id);
-const show = id => el(id).classList.add('visible');
-const hide = id => el(id).classList.remove('visible');
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const el    = id => document.getElementById(id);
+const show  = id => el(id).classList.add('visible');
+const hide  = id => el(id).classList.remove('visible');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function nodeCoord(nodes, id) {
-  const n = nodes[String(id)];
-  return n ? [n.lat, n.lng] : null;
+  const n = nodes[String(id)]; return n ? [n.lat, n.lng] : null;
 }
 
-function addLayer(layer) {
-  layer.addTo(dMap);
-  mapLayers.push(layer);
-  return layer;
-}
+// ── Map state ────────────────────────────────────────────────────────────────
+let dMap        = null;
+let baseLayers  = [];      // permanent base network layers
+let vanInstances = {};     // vanId → {marker, layers, polyline}
 
-function clearDynLayers() {
-  mapLayers.forEach(l => { try { dMap.removeLayer(l); } catch(e){} });
-  mapLayers = [];
-  if (vanMarker) { try { dMap.removeLayer(vanMarker); } catch(e){} vanMarker = null; }
-}
-
-// ── Map init ─────────────────────────────────────────────────────────────
 function initMap() {
   if (dMap) return;
-  dMap = L.map('deliveryMap', {
-    center: [28.62, 77.20], zoom: 12,
-    zoomControl: true, attributionControl: false
-  });
+  dMap = L.map('deliveryMap', { center:[28.62,77.20], zoom:11, zoomControl:true, attributionControl:false });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:18}).addTo(dMap);
 }
 
 function drawBaseNetwork(nodes, edges) {
+  baseLayers.forEach(l=>{ try{dMap.removeLayer(l);}catch(e){} });
+  baseLayers = [];
   edges.forEach(e => {
-    const c1 = nodeCoord(nodes, e.u), c2 = nodeCoord(nodes, e.v);
-    if (c1 && c2) addLayer(L.polyline([c1, c2], { color:'#C8C4BB', weight:1.5, opacity:0.8 }));
+    const c1=nodeCoord(nodes,e.u), c2=nodeCoord(nodes,e.v);
+    if(c1&&c2) baseLayers.push(L.polyline([c1,c2],{color:'#C8C4BB',weight:1.5,opacity:0.7}).addTo(dMap));
   });
-  Object.entries(nodes).forEach(([id, n]) => {
-    const isWH = n.type === 'warehouse';
-    const m = addLayer(L.circleMarker([n.lat, n.lng], {
-      radius: isWH ? 8 : 5,
-      color: isWH ? '#5B21B6' : '#9CA3AF',
-      fillColor: isWH ? '#EDE9FE' : '#F9FAFB',
-      fillOpacity: 1, weight: isWH ? 2 : 1.5
-    }));
-    m.bindTooltip(n.name, { className: 'tt-custom', direction:'top', offset:[0,-6] });
+  Object.entries(nodes).forEach(([id,n]) => {
+    const isWH = n.type==='warehouse';
+    const m = L.circleMarker([n.lat,n.lng],{
+      radius:isWH?7:4, color:isWH?'#5B21B6':'#9CA3AF',
+      fillColor:isWH?'#EDE9FE':'#F9FAFB', fillOpacity:1, weight:isWH?2:1.5
+    }).addTo(dMap);
+    m.bindTooltip(n.name,{className:'tt-custom',direction:'top',offset:[0,-5]});
+    baseLayers.push(m);
   });
 }
 
-// ── Stepper ───────────────────────────────────────────────────────────────
-function setStep(active) {
-  for (let i = 1; i <= 5; i++) {
-    const c = el('sp'+i), l = el('sl'+i);
-    if (i < active) {
-      c.className = 'step-circle s-done'; c.textContent = '✓';
-      l.className = 'step-lbl sl-done';
-    } else if (i === active) {
-      c.className = 'step-circle s-active'; c.textContent = i < 5 ? i : '✓';
-      l.className = 'step-lbl sl-active';
-    } else {
-      c.className = 'step-circle'; c.textContent = i < 5 ? i : '✓';
-      l.className = 'step-lbl';
+// Each van slot gets a distinct shape+color+label combo so they're unmistakable at a glance
+const VAN_CONFIGS = [
+  { color:'#5B21B6', label:'V1', shape:'diamond',  trailColor:'#7C3AED', name:'Van 1' },
+  { color:'#0369A1', label:'V2', shape:'square',   trailColor:'#0EA5E9', name:'Van 2' },
+  { color:'#B45309', label:'V3', shape:'hexagon',  trailColor:'#F59E0B', name:'Van 3' },
+];
+
+function makeVanHTML(cfg) {
+  const c = cfg.color;
+  const shapes = {
+    diamond: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+        <div style="width:22px;height:22px;background:${c};border:2.5px solid #fff;transform:rotate(45deg);box-shadow:0 2px 10px ${c}99;"></div>
+        <span style="position:absolute;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;color:#fff;letter-spacing:-0.5px;">${cfg.label}</span>
+      </div>`,
+    square: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+        <div style="width:22px;height:22px;background:${c};border:2.5px solid #fff;border-radius:3px;box-shadow:0 2px 10px ${c}99;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;color:#fff;">${cfg.label}</span>
+        </div>
+      </div>`,
+    hexagon: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;position:relative;">
+        <svg width="28" height="28" viewBox="0 0 28 28" style="position:absolute;">
+          <polygon points="14,1 26,7.5 26,20.5 14,27 2,20.5 2,7.5" fill="${c}" stroke="white" stroke-width="2"/>
+        </svg>
+        <span style="position:relative;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;color:#fff;z-index:1;">${cfg.label}</span>
+      </div>`,
+  };
+  return `<div style="position:relative;width:32px;height:32px;">
+    ${shapes[cfg.shape]}
+    <style>
+      @keyframes vp-${cfg.label}{0%,100%{filter:drop-shadow(0 0 0px ${c})}50%{filter:drop-shadow(0 0 6px ${c})}}
+    </style>
+    <div style="animation:vp-${cfg.label} 1.8s ease-in-out infinite;position:absolute;inset:0;pointer-events:none;"></div>
+  </div>`;
+}
+
+function createVanMarker(vanIdx, coord) {
+  const cfg  = VAN_CONFIGS[vanIdx % VAN_CONFIGS.length];
+  const icon = L.divIcon({
+    className: '',
+    html:      makeVanHTML(cfg),
+    iconSize:  [32, 32],
+    iconAnchor:[16, 16],
+  });
+  return L.marker(coord, { icon, zIndexOffset: 1000 + vanIdx }).addTo(dMap);
+}
+
+// ── Smooth interpolated travel between two lat/lng points ─────────────────────
+// Returns a Promise that resolves when the travel is complete.
+// The marker glides from `fromCoord` to `toCoord` over `durationMs` ms,
+// and `trailLine` has points appended frame-by-frame so the trail draws itself.
+function smoothTravel(marker, fromCoord, toCoord, durationMs, trailLine) {
+  return new Promise(resolve => {
+    const [lat1, lng1] = fromCoord;
+    const [lat2, lng2] = toCoord;
+    const start = performance.now();
+    // Easing: ease-in-out cubic
+    const ease = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+
+    // Track last appended lat/lng to avoid redundant polyline points
+    let lastLat = lat1, lastLng = lng1;
+    const TRAIL_STEP = 0.00008; // only append if moved > ~9m
+
+    function frame(now) {
+      const t     = Math.min(1, (now - start) / durationMs);
+      const et    = ease(t);
+      const lat   = lat1 + (lat2 - lat1) * et;
+      const lng   = lng1 + (lng2 - lng1) * et;
+      marker.setLatLng([lat, lng]);
+
+      const dlat = Math.abs(lat - lastLat), dlng = Math.abs(lng - lastLng);
+      if (dlat > TRAIL_STEP || dlng > TRAIL_STEP || t === 1) {
+        if (trailLine) trailLine.addLatLng([lat, lng]);
+        lastLat = lat; lastLng = lng;
+      }
+
+      if (t < 1) requestAnimationFrame(frame);
+      else       resolve();
     }
-    const bar = el('sb'+i);
-    if (bar) bar.className = 'step-bar' + (i < active ? ' done' : '');
-  }
+    requestAnimationFrame(frame);
+  });
 }
 
-// ── Order list ───────────────────────────────────────────────────────────
-let ordersData  = [];
-let doneCount   = 0;
-let activeIdx   = -1;
+function clearVan(vanId) {
+  const v = vanInstances[vanId];
+  if (!v) return;
+  v.dynLayers.forEach(l=>{ try{dMap.removeLayer(l);}catch(e){} });
+  if (v.marker) { try{dMap.removeLayer(v.marker);}catch(e){} }
+  delete vanInstances[vanId];
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['dispatch','place','history'].forEach(t => {
+    el('tab-'+t).classList.toggle('active', t===name);
+    el('pane-'+t).style.display = t===name ? (t==='dispatch'?'flex':'block') : 'none';
+  });
+  if (name==='history') loadHistory();
+}
+
+// ── Order list ────────────────────────────────────────────────────────────────
+let ordersData = [];
+let doneCount  = 0;
 
 function renderOrderList(orders) {
   const list = el('orderList');
   list.innerHTML = '';
-
   let lastP = null;
-  orders.forEach((o, i) => {
+  orders.forEach((o,i) => {
     if (o.priority !== lastP) {
       const div = document.createElement('div');
       div.className = 'p-divider';
-      div.innerHTML = `
-        <span style="width:8px;height:8px;border-radius:50%;background:${P_COLOR[o.priority]};display:inline-block;flex-shrink:0"></span>
-        <span style="color:${P_COLOR[o.priority]}">Priority ${o.priority} — ${P_LABEL[o.priority]}</span>
-      `;
+      div.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${P_COLOR[o.priority]};display:inline-block;flex-shrink:0"></span><span style="color:${P_COLOR[o.priority]}">P${o.priority} — ${P_LABEL[o.priority]}</span>`;
       list.appendChild(div);
       lastP = o.priority;
     }
-
     const row = document.createElement('div');
     row.className = 'order-item';
-    row.id = 'order-row-' + i;
-
+    row.id = 'order-row-'+i;
     row.innerHTML = `
       <span class="p-dot" style="background:${P_COLOR[o.priority]}"></span>
       <span class="order-id-col">${o.package_id}</span>
       <div>
         <div class="order-dest-col">${o.dest_name}</div>
-        <div class="order-meta-col">P${o.priority} · ${o.deadline}h deadline · ${o.weight}kg</div>
+        <div class="order-meta-col">P${o.priority} · ${o.deadline}h · ${o.weight}kg</div>
       </div>
-      <div class="order-meta-col" style="text-align:right"></div>
-      <div class="order-status-col">
-        <span class="o-badge ob-waiting" id="badge-${i}">Waiting</span>
-      </div>
+      <div class="order-status-col"><span class="o-badge ob-waiting" id="badge-${i}">Waiting</span></div>
     `;
     list.appendChild(row);
   });
-
-  el('sTot').textContent  = orders.length;
+  el('sTot').textContent = orders.length;
   el('sDone').textContent = '0';
-  el('sRem').textContent  = orders.length;
+  el('sVans').textContent = '0';
 }
 
 function setOrderStatus(i, status, badgeClass, badgeText) {
-  const row   = el('order-row-' + i);
-  const badge = el('badge-' + i);
-  if (!row || !badge) return;
-  row.className = 'order-item' + (status === 'active' ? ' active-order' : status === 'done' ? ' done-order' : '');
-  badge.className = 'o-badge ' + badgeClass;
+  const row = el('order-row-'+i); const badge = el('badge-'+i);
+  if (!row||!badge) return;
+  row.className = 'order-item'+(status==='active'?' active-order':status==='done'?' done-order':'');
+  badge.className = 'o-badge '+badgeClass;
   badge.textContent = badgeText;
-  if (status === 'active') row.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  if (status==='active') row.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-// ── Route chain overlay ───────────────────────────────────────────────────
+// ── Stepper ───────────────────────────────────────────────────────────────────
+function setStep(active) {
+  for (let i=1;i<=5;i++) {
+    const c=el('sp'+i), l=el('sl'+i);
+    if (i<active){ c.className='step-circle s-done'; c.textContent='✓'; l.className='step-lbl sl-done';}
+    else if(i===active){ c.className='step-circle s-active'; c.textContent=i<5?i:'✓'; l.className='step-lbl sl-active';}
+    else{ c.className='step-circle'; c.textContent=i<5?i:'✓'; l.className='step-lbl';}
+    const bar=el('sb'+i); if(bar) bar.className='step-bar'+(i<active?' done':'');
+  }
+}
+
+// ── Route chain overlay ───────────────────────────────────────────────────────
 function buildRouteChain(path, nodes) {
-  const rc = el('routeChain');
-  rc.innerHTML = '';
-  path.forEach((id, i) => {
-    const n = nodes[String(id)];
-    if (!n) return;
-
+  const rc = el('routeChain'); rc.innerHTML='';
+  path.forEach((id,i) => {
+    const n = nodes[String(id)]; if(!n) return;
     const node = document.createElement('div');
-    node.className = 'rc-node';
-    node.id = 'rcn-' + i;
-
-    let tag = '';
-    if (i === 0) tag = `<span class="rc-tag" style="background:var(--accent-l);color:var(--accent)">WH</span>`;
-    if (i === path.length - 1) tag = `<span class="rc-tag" style="background:var(--green-l);color:var(--green)">DEST</span>`;
-
-    node.innerHTML = `<div class="rc-dot"></div><div class="rc-name">${n.name}</div>${tag}`;
+    node.className='rc-node'; node.id='rcn-'+i;
+    let tag='';
+    if(i===0) tag=`<span class="rc-tag" style="background:var(--accent-l);color:var(--accent)">WH</span>`;
+    if(i===path.length-1) tag=`<span class="rc-tag" style="background:var(--green-l);color:var(--green)">DEST</span>`;
+    node.innerHTML=`<div class="rc-dot"></div><div class="rc-name">${n.name}</div>${tag}`;
     rc.appendChild(node);
-
-    if (i < path.length - 1) {
-      const conn = document.createElement('div');
-      conn.className = 'rc-connector';
-      conn.style.marginLeft = '3px';
-      rc.appendChild(conn);
-    }
+    if(i<path.length-1){ const conn=document.createElement('div'); conn.className='rc-connector'; conn.style.marginLeft='2px'; rc.appendChild(conn); }
   });
   show('mapOverlay');
 }
-
 function markRCNode(idx, type) {
-  const node = el('rcn-' + idx);
-  if (!node) return;
-  node.className = 'rc-node rc-' + type;
+  const node=el('rcn-'+idx); if(!node) return;
+  node.className='rc-node rc-'+type;
+  node.querySelectorAll('.rc-tag.here-tag').forEach(t=>t.remove());
+  if(type==='current'){ const t=document.createElement('span'); t.className='rc-tag here-tag'; t.style.cssText='background:var(--accent-l);color:var(--accent)'; t.textContent='HERE'; node.appendChild(t); }
+}
 
-  // remove old Van Here tag
-  node.querySelectorAll('.rc-tag.here-tag').forEach(t => t.remove());
+// ── Parallel van pool tracking ────────────────────────────────────────────────
+let activeVanCount = 0;
+let totalDelivered = 0;
 
-  if (type === 'current') {
-    const t = document.createElement('span');
-    t.className = 'rc-tag here-tag';
-    t.style.cssText = 'background:var(--accent-l);color:var(--accent)';
-    t.textContent = 'HERE';
-    node.appendChild(t);
+function updateVanIndicators(maxVans) {
+  const cont = el('vanIndicators'); cont.innerHTML = '';
+  vanInstances = {};
+  for(let i=0;i<maxVans;i++){
+    const d=document.createElement('div');
+    d.className='van-ind'; d.id='van-ind-'+i; d.textContent=(VAN_CONFIGS[i%VAN_CONFIGS.length]||{label:'V'+(i+1)}).label;
+    d.style.background = VAN_CONFIGS[i%VAN_CONFIGS.length]?.color || '#5B21B6';
+    d.style.color = '#fff'; d.style.fontSize = '9px'; d.style.fontFamily = "'JetBrains Mono',monospace"; d.style.fontWeight = '700';
+    cont.appendChild(d);
   }
 }
 
-// ── Main session ─────────────────────────────────────────────────────────
+// ── Main session — parallel dispatch ─────────────────────────────────────────
+let sessionRunning = false;
+
 async function startSession() {
   if (sessionRunning) return;
   sessionRunning = true;
+  doneCount = 0; totalDelivered = 0; activeVanCount = 0;
 
-  const btn = el('runBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="btn-spin"></span> Loading orders…';
+  const btn=el('runBtn');
+  btn.disabled=true; btn.innerHTML='<span class="btn-spin"></span> Loading…';
 
   const n = el('nSlider').value;
 
-  // Clear previous
-  clearDynLayers();
-  hide('mapOverlay');
-  hide('mapStatusBar');
-  hide('trafficStrip');
-  hide('rerouteStrip');
-  el('activeDetail').style.display = 'none';
-  el('mapEmpty').style.display = 'none';
-  doneCount = 0;
+  // Clear map overlays
+  Object.keys(vanInstances).forEach(clearVan);
+  hide('mapOverlay'); hide('mapStatusBar');
+  hide('trafficStrip'); hide('rerouteStrip');
+  el('activeDetail').style.display='none';
+  el('mapEmpty').style.display='none';
 
-  // Fetch sorted orders from /run
-  let runData;
-  try {
-    const r = await fetch(`/run?n=${n}`);
-    runData = await r.json();
-  } catch(e) {
-    btn.disabled = false;
-    btn.innerHTML = '▶ &nbsp; LOAD & DISPATCH ORDERS';
-    sessionRunning = false;
-    return;
-  }
-
-  // runData is the steps array — step 8 has the dispatch info
-  // We need /ops for the full sorted orders list
+  // Fetch sorted orders
   let opsData;
-  try {
-    const r = await fetch(`/ops?n=${n}`);
-    opsData = await r.json();
-  } catch(e) {
-    btn.disabled = false;
-    btn.innerHTML = '▶ &nbsp; LOAD & DISPATCH ORDERS';
-    sessionRunning = false;
-    return;
-  }
+  try { const r=await fetch(`/ops?n=${n}`); opsData=await r.json(); }
+  catch(e){ btn.disabled=false; btn.innerHTML='▶ &nbsp; DISPATCH PARALLEL FLEET'; sessionRunning=false; return; }
 
-  ordersData = opsData.sorted_orders;  // already sorted by priority then deadline
-
-  // Enrich with dest_name from nodes (ops returns id + priority + deadline + weight + dest name)
+  ordersData = opsData.sorted_orders;
   renderOrderList(ordersData);
-
-  // Init map + draw base network
   initMap();
-  // Fetch nodes/edges for base layer
-  const nodesEdges = await fetch('/nodes').then(r => r.json());
-  drawBaseNetwork(nodesEdges.nodes.reduce((acc, n) => { acc[n.id] = n; return acc; }, {}),
-                  nodesEdges.edges);
 
-  btn.innerHTML = '▶ &nbsp; LOAD & DISPATCH ORDERS';
+  const nodesEdges = await fetch('/nodes').then(r=>r.json());
+  const nodesMap   = nodesEdges.nodes.reduce((a,n)=>{ a[n.id]=n; return a; }, {});
+  drawBaseNetwork(nodesMap, nodesEdges.edges);
 
-  // Process each order one by one
-  for (let i = 0; i < ordersData.length; i++) {
-    activeIdx = i;
-    await processOrder(i, ordersData[i]);
-    doneCount++;
-    el('sDone').textContent = doneCount;
-    el('sRem').textContent  = ordersData.length - doneCount;
-    await sleep(400); // brief gap between orders
+  btn.innerHTML='▶ &nbsp; DISPATCH PARALLEL FLEET';
+
+  // Show parallel strip
+  const parallelCount = Math.min(MAX_PARALLEL, ordersData.length);
+  show('parallelStrip');
+  updateVanIndicators(parallelCount);
+  el('sVans').textContent = '0';
+
+  // Dispatch in parallel batches of MAX_PARALLEL
+  const queue = ordersData.map((o,i)=>({o,i}));
+  const results = [];
+
+  async function runBatch() {
+    while (queue.length > 0) {
+      const {o, i} = queue.shift();
+      const vanSlot = Object.keys(vanInstances).length < MAX_PARALLEL
+        ? Object.keys(vanInstances).length
+        : await nextFreeSlot();
+      const vanId = 'van-' + i;
+      vanInstances[vanId] = { dynLayers:[], marker:null };
+      activeVanCount++;
+      el('sVans').textContent = activeVanCount;
+      setVanIndicator(vanSlot % parallelCount, 'active');
+      processOrder(i, o, vanId, vanSlot).then(() => {
+        clearVan(vanId);
+        activeVanCount--;
+        el('sVans').textContent = activeVanCount;
+        totalDelivered++;
+        el('sDone').textContent = totalDelivered;
+        setVanIndicator(vanSlot % parallelCount, 'done');
+        if (totalDelivered === ordersData.length) {
+          sessionRunning = false;
+          btn.disabled = false;
+          btn.innerHTML = '▶ &nbsp; DISPATCH PARALLEL FLEET';
+          hide('parallelStrip');
+          el('sVans').textContent = '0';
+        }
+      });
+      // Small stagger so vans don't all start at identical moment
+      await sleep(300 + Math.random() * 400);
+    }
   }
 
-  btn.disabled = false;
-  sessionRunning = false;
+  // Launch up to MAX_PARALLEL concurrent runners
+  const runners = Array.from({length: Math.min(MAX_PARALLEL, ordersData.length)}, () => runBatch());
+  // Don't await all — let them run
 }
 
-async function processOrder(idx, order) {
-  const destId = order.dest_node !== undefined ? order.dest_node : order.dest_id;
+function setVanIndicator(slot, state) {
+  const d = el('van-ind-'+slot); if(!d) return;
+  const cfg = VAN_CONFIGS[slot % VAN_CONFIGS.length];
+  d.className = 'van-ind' + (state==='active'?' active':state==='done'?' done':'');
+  d.style.background = state==='done' ? '#059669' : state==='active' ? cfg.color : '#E5E7EB';
+  d.style.color = (state==='active'||state==='done') ? '#fff' : '#9CA3AF';
+  d.textContent = cfg.label;
+}
 
-  // Fetch simulate for this specific destination
+// Resolves when any van finishes (simple polling)
+function nextFreeSlot() {
+  return new Promise(resolve => {
+    const check = () => {
+      if (Object.keys(vanInstances).length < MAX_PARALLEL) { resolve(Object.keys(vanInstances).length); return; }
+      setTimeout(check, 100);
+    };
+    check();
+  });
+}
+
+// ── Single order animation ────────────────────────────────────────────────────
+// SEG_MS: how long (ms) to spend travelling each road segment.
+// Longer segments get more time so speed feels constant.
+const BASE_SEG_MS   = 1400;  // ms per average segment
+const TRAFFIC_PAUSE = 1800;  // ms to pause at congestion point before rerouting
+
+async function processOrder(idx, order, vanId, vanSlot) {
+  const destId = order.dest_node;
   let sim;
-  try {
-    const r = await fetch(`/simulate?dest=${destId}`);
-    sim = await r.json();
-  } catch(e) { return; }
+  try { const r=await fetch(`/simulate?dest=${destId}`); sim=await r.json(); }
+  catch(e){ return; }
 
-  const { nodes, edges, warehouse, warehouse_name, destination,
+  const { nodes, warehouse, warehouse_name, destination,
           dest_name, planned_path, planned_distance, traffic_event } = sim;
 
-  // Convert nodes array to lookup
-  const nodesMap = typeof nodes === 'object' && !Array.isArray(nodes)
-    ? nodes
-    : nodes.reduce((a, n) => { a[n.id] = n; return a; }, {});
+  const nodesMap = (typeof nodes==='object'&&!Array.isArray(nodes)) ? nodes
+    : nodes.reduce((a,n)=>{ a[n.id]=n; return a; }, {});
 
-  // ── Show active detail panel ──
-  el('activeDetail').style.display = 'block';
-  el('detailTitle').textContent = `Order ${idx + 1} of ${ordersData.length}`;
-  el('icOrderId').textContent   = order.package_id || order.id;
-  el('icDest').textContent      = dest_name;
-  el('icWh').textContent        = warehouse_name;
-  el('icDist').textContent      = planned_distance + ' km';
-  el('icNode').textContent      = '—';
+  const vanInst = vanInstances[vanId];
+  if (!vanInst) return;
 
-  // Pick van
-  const vanName = VAN_NAMES[Math.floor(Math.random() * VAN_NAMES.length)];
-  const vanCap  = VAN_CAP[vanName];
-  const loadKg  = Math.round((order.weight || 5) + Math.random() * 10);
-  el('icVan').textContent = `${vanName} · ${loadKg}kg`;
+  const cfg       = VAN_CONFIGS[vanSlot % VAN_CONFIGS.length];
+  const vanColor  = cfg.color;
+  const trailColor= cfg.trailColor;
+  const showDetail = (vanSlot === 0); // left-panel detail only for first van
 
-  // Status bar
-  el('msbVan').textContent   = vanName;
-  el('msbOrder').textContent = `${idx+1}/${ordersData.length}`;
-  show('mapStatusBar');
+  // ── Pre-travel UI setup ──────────────────────────────────────────────────────
+  if (showDetail) {
+    el('activeDetail').style.display='block';
+    el('detailTitle').textContent = `${cfg.name} — Order ${idx+1}/${ordersData.length}`;
+    el('icOrderId').textContent   = order.package_id || order.id;
+    el('icDest').textContent      = dest_name;
+    el('icWh').textContent        = warehouse_name;
+    el('icDist').textContent      = planned_distance + ' km';
+    el('icNode').textContent      = warehouse_name;
+    el('icVan').textContent       = `${cfg.name} · ${order.weight}kg`;
+    el('msbVan').textContent      = cfg.label;
+    el('msbVan').style.background = cfg.color;
+    el('msbOrder').textContent    = `${idx+1}/${ordersData.length}`;
+    show('mapStatusBar');
+    hide('trafficStrip'); hide('rerouteStrip');
+    setStep(1);
+  }
 
-  hide('trafficStrip');
-  hide('rerouteStrip');
-
-  // ── Step 1: Placed ──
   setOrderStatus(idx, 'active', 'ob-packing', 'Packing');
-  setStep(1);
-  setBadge('Processing', 'ob-packing');
-  await sleep(600);
+  await sleep(300 + vanSlot * 200);
+  if (showDetail) setStep(2);
+  await sleep(400);
 
-  // ── Step 2: Packed ──
-  setStep(2);
-  setBadge('Packed', 'ob-packing');
-  await sleep(700);
-
-  // ── Step 3: Dispatched ──
   setOrderStatus(idx, 'active', 'ob-enroute', 'En Route');
-  setStep(3);
-  setBadge('En Route', 'ob-enroute');
-
-  // Clear old route, draw new
-  clearDynLayers();
-  drawBaseNetwork(
-    Object.fromEntries(Object.entries(nodesMap).map(([k,v])=>[k,v])),
-    sim.edges
-  );
-
-  const plannedCoords = planned_path.map(id => nodeCoord(nodesMap, id)).filter(Boolean);
-  addLayer(L.polyline(plannedCoords, { color:'#5B21B6', weight:3, opacity:0.35, dashArray:'7 5' }));
+  if (showDetail) { setStep(3); setBadge('En Route', 'ob-enroute'); }
 
   const whCoord  = nodeCoord(nodesMap, warehouse);
   const dstCoord = nodeCoord(nodesMap, destination);
+  const allCoords = planned_path.map(id=>nodeCoord(nodesMap,id)).filter(Boolean);
+  if (!whCoord || allCoords.length < 2) return;
 
-  if (whCoord) {
-    const wm = addLayer(L.circleMarker(whCoord, { radius:11, color:'#5B21B6', fillColor:'#5B21B6', fillOpacity:1, weight:2 }));
-    wm.bindTooltip('🏭 ' + warehouse_name, { className:'tt-custom', permanent:true, direction:'top', offset:[0,-12] });
-  }
+  // Ghost route: thin dashed line showing full planned path ahead
+  const ghostLine = L.polyline(allCoords, {
+    color: vanColor, weight: 2, opacity: 0.18, dashArray: '5 7'
+  }).addTo(dMap);
+  vanInst.dynLayers.push(ghostLine);
 
+  // Destination marker — large, permanent, distinct per van
   if (dstCoord) {
-    const dm = addLayer(L.circleMarker(dstCoord, { radius:11, color:'#059669', fillColor:'#059669', fillOpacity:1, weight:2 }));
-    dm.bindTooltip('📦 ' + dest_name, { className:'tt-custom', permanent:true, direction:'top', offset:[0,-12] });
+    const ring = L.circleMarker(dstCoord, {
+      radius: 13, color: vanColor, fillColor: vanColor,
+      fillOpacity: 0.15, weight: 2.5
+    }).addTo(dMap);
+    const dot = L.circleMarker(dstCoord, {
+      radius: 5, color: vanColor, fillColor: vanColor, fillOpacity: 1, weight: 0
+    }).addTo(dMap);
+    dot.bindTooltip(`📦 ${dest_name} (${cfg.name})`, {
+      className:'tt-custom', permanent: true, direction:'top', offset:[0,-14]
+    });
+    vanInst.dynLayers.push(ring, dot);
   }
 
-  if (plannedCoords.length > 1)
-    dMap.fitBounds(L.latLngBounds(plannedCoords).pad(0.2));
+  // Zoom to fit this van's route, but don't pan aggressively while others run
+  if (vanSlot === 0) {
+    dMap.fitBounds(L.latLngBounds(allCoords).pad(0.22), { animate: true, duration: 0.6 });
+    await sleep(700);
+  }
 
-  // Build route chain
-  buildRouteChain(planned_path, nodesMap);
-  markRCNode(0, 'visited');
+  // Spawn van at warehouse
+  vanInst.marker = createVanMarker(vanSlot, whCoord);
 
-  // Van marker
-  const vanIcon = L.divIcon({
-    className: '',
-    html: `<div style="
-      width:28px;height:28px;border-radius:50%;
-      background:#5B21B6;border:3px solid #fff;
-      display:flex;align-items:center;justify-content:center;
-      font-size:14px;
-      box-shadow:0 2px 10px rgba(91,33,182,0.5);
-      animation:van-pulse 1.5s infinite;
-    ">🚐</div>
-    <style>@keyframes van-pulse{0%,100%{box-shadow:0 2px 10px rgba(91,33,182,0.5),0 0 0 0 rgba(91,33,182,0.3)}50%{box-shadow:0 2px 10px rgba(91,33,182,0.5),0 0 0 8px rgba(91,33,182,0)}}</style>`,
-    iconSize: [28,28], iconAnchor:[14,14]
-  });
-  vanMarker = L.marker(whCoord || plannedCoords[0], { icon:vanIcon, zIndexOffset:1000 }).addTo(dMap);
+  // Travelling trail line
+  const trailLine = L.polyline([whCoord], {
+    color: trailColor, weight: 4, opacity: 0.9
+  }).addTo(dMap);
+  vanInst.dynLayers.push(trailLine);
 
-  await sleep(500);
+  if (showDetail) {
+    buildRouteChain(planned_path, nodesMap);
+    markRCNode(0, 'visited');
+    setStep(4);
+  }
 
-  // ── Step 4: En Route — animate ──
-  setStep(4);
+  // ── Helper: travel a list of node-ids segment by segment ──────────────────
+  // segMs: ms per segment. Returns when done or vanId is gone (cleared).
+  async function travelPath(nodePath, segMs, line) {
+    for (let i = 0; i < nodePath.length - 1; i++) {
+      if (!vanInstances[vanId]) return false; // van was cleared mid-trip
+      const from = nodeCoord(nodesMap, nodePath[i]);
+      const to   = nodeCoord(nodesMap, nodePath[i + 1]);
+      if (!from || !to) continue;
 
+      await smoothTravel(vanInst.marker, from, to, segMs, line);
+
+      // Update UI after each segment arrives at `to`
+      if (showDetail) {
+        const toName = nodesMap[String(nodePath[i+1])]?.name || '—';
+        el('icNode').textContent = toName;
+        el('msbAt').textContent  = toName;
+        el('msbEta').textContent = Math.max(0, nodePath.length - 2 - i) + ' stops';
+        el('parallelProgress').textContent = `${totalDelivered}/${ordersData.length} delivered`;
+        markRCNode(i + 1, i + 1 === nodePath.length - 1 ? 'visited' : 'current');
+      }
+    }
+    return true;
+  }
+
+  // ── Phase 1: travel to traffic point (or full path if no traffic) ─────────
   const atNode    = traffic_event.at_node;
   const atNodeIdx = atNode !== null ? planned_path.indexOf(atNode) : -1;
   const phase1    = atNodeIdx >= 0 ? planned_path.slice(0, atNodeIdx + 1) : planned_path;
 
-  let tLine = addLayer(L.polyline([], { color:'#5B21B6', weight:4, opacity:1 }));
+  const ok1 = await travelPath(phase1, BASE_SEG_MS, trailLine);
+  if (!ok1) return;
 
-  // Phase 1 travel
-  for (let i = 0; i < phase1.length; i++) {
-    const coord = nodeCoord(nodesMap, phase1[i]);
-    if (!coord) continue;
-    vanMarker.setLatLng(coord);
-    tLine.addLatLng(coord);
-    dMap.panTo(coord, { animate:true, duration:0.25 });
-
-    el('icNode').textContent  = nodesMap[String(phase1[i])]?.name || '—';
-    el('msbAt').textContent   = nodesMap[String(phase1[i])]?.name || '—';
-    el('msbEta').textContent  = Math.max(0, planned_path.length - 1 - i) + ' stops';
-
-    markRCNode(i, i === phase1.length - 1 && atNode !== null ? 'current' : 'visited');
-
-    if (i < phase1.length - 1) await sleep(800);
-  }
-
-  // ── Traffic event ──
+  // ── Traffic event ──────────────────────────────────────────────────────────
   if (atNode !== null && traffic_event.congested_edges.length > 0) {
-    setBadge('Traffic!', 'ob-traffic');
     setOrderStatus(idx, 'active', 'ob-traffic', 'Traffic');
-    el('msbEta').textContent = 'Recalc…';
 
-    const edgeDesc = traffic_event.congested_edges.map(ce => {
-      const u = nodesMap[String(ce.u)]?.name || ce.u;
-      const v = nodesMap[String(ce.v)]?.name || ce.v;
-      return `${u} ↔ ${v} (${ce.multiplier}×)`;
-    }).join(', ');
+    if (showDetail) {
+      const edgeDesc = traffic_event.congested_edges.map(ce => {
+        const u = nodesMap[String(ce.u)]?.name || ce.u;
+        const v = nodesMap[String(ce.v)]?.name || ce.v;
+        return `${u} → ${v} (${ce.multiplier}×)`;
+      }).join(' · ');
+      el('tsBody').textContent = `Congestion at ${traffic_event.at_node_name}: ${edgeDesc}`;
+      show('trafficStrip');
+      setBadge('Traffic!', 'ob-traffic');
+    }
 
-    el('tsBody').textContent = `${traffic_event.at_node_name}: congestion on ${edgeDesc}. Re-running Dijkstra…`;
-    show('trafficStrip');
-
-    // Draw congested edges red
+    // Draw congested edges as thick red lines with opacity pulse via CSS
+    const congestLayers = [];
     traffic_event.congested_edges.forEach(ce => {
       const c1 = nodeCoord(nodesMap, ce.u), c2 = nodeCoord(nodesMap, ce.v);
       if (c1 && c2) {
-        addLayer(L.polyline([c1,c2], { color:'#DC2626', weight:5, opacity:0.85 }));
-        addLayer(L.circleMarker([(c1[0]+c2[0])/2,(c1[1]+c2[1])/2], {
-          radius:7, color:'#DC2626', fillColor:'#FCA5A5', fillOpacity:0.9, weight:2
-        })).bindTooltip(`🚦 ${ce.multiplier}×`, { className:'tt-custom' });
+        // Background glow
+        const glow = L.polyline([c1,c2], { color:'#DC2626', weight:10, opacity:0.18 }).addTo(dMap);
+        // Main line
+        const line = L.polyline([c1,c2], { color:'#DC2626', weight:4,  opacity:0.9  }).addTo(dMap);
+        // Midpoint badge
+        const mid  = [(c1[0]+c2[0])/2, (c1[1]+c2[1])/2];
+        const badge= L.circleMarker(mid, {
+          radius:8, color:'#DC2626', fillColor:'#fff', fillOpacity:1, weight:2
+        }).addTo(dMap);
+        badge.bindTooltip(`🚦 ×${ce.multiplier}`, { className:'tt-custom', permanent:true, direction:'top', offset:[0,-10] });
+        congestLayers.push(glow, line, badge);
+        vanInst.dynLayers.push(glow, line, badge);
       }
     });
 
-    await sleep(1600);
+    // Hold at congestion node for TRAFFIC_PAUSE
+    await sleep(TRAFFIC_PAUSE);
 
     if (traffic_event.reroute_happened) {
       const newSuffix = traffic_event.new_path_suffix;
-      const newCoords = newSuffix.map(id => nodeCoord(nodesMap, id)).filter(Boolean);
 
-      addLayer(L.polyline(newCoords, { color:'#059669', weight:4, opacity:0.8, dashArray:'9 4' }));
+      // Fade out congestion markers
+      congestLayers.forEach(l => { try { l.setStyle({opacity:0.3}); } catch(e){} });
 
-      // Append rerouted nodes to route chain
-      const rc = el('routeChain');
-      const label = document.createElement('div');
-      label.className = 'rc-reroute-label';
-      label.textContent = '↺ REROUTED';
-      rc.appendChild(label);
-
-      newSuffix.slice(1).forEach((id, j) => {
-        const n = nodesMap[String(id)];
-        if (!n) return;
-        const conn = document.createElement('div');
-        conn.className = 'rc-connector';
-        conn.style.marginLeft = '3px';
-        rc.appendChild(conn);
-        const node = document.createElement('div');
-        node.className = 'rc-node rc-rerouted';
-        node.id = 'rcn-new-' + j;
-        const isLast = j === newSuffix.length - 2;
-        let tag = isLast ? `<span class="rc-tag" style="background:var(--green-l);color:var(--green)">DEST</span>` : `<span class="rc-tag" style="background:var(--amber-l);color:var(--amber)">NEW</span>`;
-        node.innerHTML = `<div class="rc-dot" style="background:var(--amber);border-color:var(--amber)"></div><div class="rc-name">${n.name}</div>${tag}`;
-        rc.appendChild(node);
-      });
-
-      el('rsBody').textContent = `New path: ${newSuffix.map(id => nodesMap[String(id)]?.name).join(' → ')} (${traffic_event.new_distance} km)`;
-      hide('trafficStrip');
-      show('rerouteStrip');
       setOrderStatus(idx, 'active', 'ob-rerouting', 'Rerouting');
-      setBadge('Rerouting', 'ob-rerouting');
+      if (showDetail) {
+        hide('trafficStrip'); show('rerouteStrip');
+        el('rsBody').textContent = `Rerouted via: ${newSuffix.map(id=>nodesMap[String(id)]?.name).join(' → ')}`;
+        setBadge('Rerouting', 'ob-rerouting');
+
+        // Append rerouted nodes to route chain
+        const rc = el('routeChain');
+        const label = document.createElement('div');
+        label.className = 'rc-reroute-label';
+        label.textContent = '↺ REROUTED';
+        rc.appendChild(label);
+        newSuffix.slice(1).forEach((id, j) => {
+          const n = nodesMap[String(id)]; if (!n) return;
+          const conn = document.createElement('div'); conn.className='rc-connector'; conn.style.marginLeft='2px'; rc.appendChild(conn);
+          const node = document.createElement('div');
+          node.className = 'rc-node rc-rerouted'; node.id = 'rcn-new-'+j;
+          const isLast = j === newSuffix.length - 2;
+          const tag = isLast
+            ? `<span class="rc-tag" style="background:var(--green-l);color:var(--green)">DEST</span>`
+            : `<span class="rc-tag" style="background:var(--amber-l);color:var(--amber)">NEW</span>`;
+          node.innerHTML = `<div class="rc-dot" style="background:var(--amber);border-color:var(--amber)"></div><div class="rc-name">${n.name}</div>${tag}`;
+          rc.appendChild(node);
+        });
+      }
+
+      // Ghost the planned route; draw a preview of the new path
+      ghostLine.setStyle({ opacity: 0.06 });
+      const reroutePreview = L.polyline(
+        newSuffix.map(id=>nodeCoord(nodesMap,id)).filter(Boolean),
+        { color:'#D97706', weight:2, opacity:0.35, dashArray:'6 5' }
+      ).addTo(dMap);
+      vanInst.dynLayers.push(reroutePreview);
 
       await sleep(500);
 
-      // Phase 2 travel
-      let tLine2 = addLayer(L.polyline([], { color:'#059669', weight:4, opacity:1 }));
-      if (newCoords[0]) tLine2.addLatLng(newCoords[0]);
+      // New trail for rerouted portion (amber)
+      const trailLine2 = L.polyline(
+        [nodeCoord(nodesMap, newSuffix[0])].filter(Boolean),
+        { color:'#D97706', weight:4, opacity:0.9 }
+      ).addTo(dMap);
+      vanInst.dynLayers.push(trailLine2);
 
-      for (let i = 1; i < newSuffix.length; i++) {
-        const coord = nodeCoord(nodesMap, newSuffix[i]);
-        if (!coord) continue;
-        vanMarker.setLatLng(coord);
-        tLine2.addLatLng(coord);
-        dMap.panTo(coord, { animate:true, duration:0.25 });
+      const ok2 = await travelPath(newSuffix, BASE_SEG_MS, trailLine2);
+      if (!ok2) return;
 
-        el('icNode').textContent = nodesMap[String(newSuffix[i])]?.name || '—';
-        el('msbAt').textContent  = nodesMap[String(newSuffix[i])]?.name || '—';
-        el('msbEta').textContent = Math.max(0, newSuffix.length - 1 - i) + ' stops';
-
-        const newEls = document.querySelectorAll('[id^="rcn-new-"]');
-        if (newEls[i-1]) newEls[i-1].className = 'rc-node rc-' + (i === newSuffix.length-1 ? 'visited' : 'current');
-
-        await sleep(800);
-      }
     } else {
-      hide('trafficStrip');
+      // No reroute — continue on original path from atNode
+      if (showDetail) hide('trafficStrip');
+      const remainder = planned_path.slice(atNodeIdx);
+      const ok2 = await travelPath(remainder, BASE_SEG_MS, trailLine);
+      if (!ok2) return;
     }
+
   } else {
-    // no traffic: travel rest of planned path
-    for (let i = phase1.length; i < planned_path.length; i++) {
-      const coord = nodeCoord(nodesMap, planned_path[i]);
-      if (!coord) continue;
-      vanMarker.setLatLng(coord);
-      tLine.addLatLng(coord);
-      dMap.panTo(coord, { animate:true, duration:0.25 });
-      el('icNode').textContent = nodesMap[String(planned_path[i])]?.name || '—';
-      el('msbAt').textContent  = nodesMap[String(planned_path[i])]?.name || '—';
-      el('msbEta').textContent = Math.max(0, planned_path.length - 1 - i) + ' stops';
-      markRCNode(i, i === planned_path.length - 1 ? 'visited' : 'current');
-      await sleep(800);
+    // No traffic: travel phase2 normally if needed
+    if (atNodeIdx >= 0) {
+      const phase2 = planned_path.slice(atNodeIdx);
+      const ok2 = await travelPath(phase2, BASE_SEG_MS, trailLine);
+      if (!ok2) return;
     }
   }
 
-  // ── Step 5: Delivered ──
-  await sleep(300);
-  setStep(5);
-  setBadge('Delivered', 'ob-delivered');
-  setOrderStatus(idx, 'done', 'ob-delivered', 'Delivered');
-  el('icNode').textContent = dest_name;
-  el('msbAt').textContent  = dest_name;
-  el('msbEta').textContent = 'Delivered ✓';
-
-  if (dstCoord) {
-    const pulse = addLayer(L.circleMarker(dstCoord, { radius:20, color:'#059669', fill:false, weight:2, opacity:0.5 }));
-    setTimeout(() => { try { dMap.removeLayer(pulse); } catch(e){} }, 1500);
+  // ── Delivered ──────────────────────────────────────────────────────────────
+  await sleep(200);
+  if (showDetail) {
+    setStep(5); setBadge('Delivered', 'ob-delivered');
+    el('icNode').textContent = dest_name;
+    el('msbAt').textContent  = dest_name;
+    el('msbEta').textContent = 'Delivered ✓';
+    hide('trafficStrip'); hide('rerouteStrip');
   }
+  setOrderStatus(idx, 'done', 'ob-delivered', 'Delivered');
 
-  await sleep(700);
+  // Delivery burst: expanding rings at destination
+  if (dstCoord) {
+    [10, 18, 26].forEach((r, i) => {
+      setTimeout(() => {
+        if (!dMap) return;
+        const ring = L.circleMarker(dstCoord, {
+          radius: r, color: vanColor, fill: false, weight: 2, opacity: 0.6
+        }).addTo(dMap);
+        setTimeout(() => { try { dMap.removeLayer(ring); } catch(e){} }, 800);
+      }, i * 120);
+    });
+  }
+  await sleep(600);
 }
 
-function setBadge(text, cls) {
-  const b = el('detailBadge');
-  b.textContent = text;
-  b.className = 'o-badge ' + cls;
+function setBadge(text,cls){ const b=el('detailBadge'); b.textContent=text; b.className='o-badge '+cls; }
+
+// ── Place order form ──────────────────────────────────────────────────────────
+let selectedPriority = 3;
+
+async function populateDestinations() {
+  const sel = el('fo-dest');
+  try {
+    const r = await fetch('/nodes');
+    const data = await r.json();
+    data.nodes.filter(n=>n.type==='delivery').forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n.id; opt.textContent = n.name;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
+}
+populateDestinations();
+
+function selectPriority(p) {
+  selectedPriority = p;
+  document.querySelectorAll('.p-pick').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.p-pick[data-p="${p}"]`).classList.add('selected');
+}
+
+async function submitOrder() {
+  const name     = el('fo-name').value.trim();
+  const phone    = el('fo-phone').value.trim();
+  const destNode = parseInt(el('fo-dest').value);
+  const weight   = parseFloat(el('fo-weight').value);
+  const deadline = parseInt(el('fo-deadline').value);
+
+  if (!name) { alert('Please enter your name'); return; }
+  if (!weight || weight <= 0) { alert('Please enter a valid weight'); return; }
+  if (!deadline || deadline <= 0) { alert('Please enter a valid deadline'); return; }
+
+  try {
+    const r = await fetch('/place_order', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, phone, dest_node: destNode, weight, priority: selectedPriority, deadline })
+    });
+    const data = await r.json();
+    if (data.success) {
+      el('orderSuccessBody').textContent = `Order #${data.order_id.slice(0,8).toUpperCase()} placed for ${data.dest_name}. Will be dispatched in the next batch.`;
+      show('orderSuccess');
+      el('fo-name').value=''; el('fo-phone').value=''; el('fo-weight').value=''; el('fo-deadline').value='';
+    }
+  } catch(e) { alert('Failed to place order. Is the server running?'); }
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch('/history?limit=40');
+    const data = await r.json();
+
+    // Trips
+    const tripsEl = el('historyTrips');
+    if (data.trips.length === 0) {
+      tripsEl.innerHTML = '<div class="hist-empty">No trips recorded yet</div>';
+    } else {
+      tripsEl.innerHTML = data.trips.map(t => `
+        <div class="hist-row">
+          <span class="hist-id">${t.id.slice(0,8).toUpperCase()}</span>
+          <div>
+            <div class="hist-dest">${t.destination}</div>
+            <div class="hist-meta">${t.warehouse} · ${t.distance_km}km · ${t.load_kg}kg</div>
+          </div>
+          <span class="hist-badge hb-${t.van.toLowerCase()}">${t.van.toUpperCase()}</span>
+          <span class="hist-meta">${t.package_ids.length} pkgs${t.has_bonus?' +bonus':''}</span>
+        </div>
+      `).join('');
+    }
+
+    // Customer orders
+    const custEl = el('historyCustomer');
+    if (data.customer_orders.length === 0) {
+      custEl.innerHTML = '<div class="hist-empty">No customer orders yet</div>';
+    } else {
+      custEl.innerHTML = data.customer_orders.map(o => {
+        const statColor = o.status==='dispatched' ? 'var(--green)' : 'var(--amber)';
+        return `
+          <div class="hist-row">
+            <span class="hist-id">${o.id.slice(0,8).toUpperCase()}</span>
+            <div>
+              <div class="hist-dest">${o.dest_name}</div>
+              <div class="hist-meta">${o.name} · ${o.weight}kg · P${o.priority}</div>
+            </div>
+            <span style="font-size:9px;font-weight:700;color:${statColor}">${o.status.toUpperCase()}</span>
+            <span class="hist-meta">${o.deadline}h deadline</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Sessions
+    const sessEl = el('historySession');
+    if (data.sessions.length === 0) {
+      sessEl.innerHTML = '<div class="hist-empty">No sessions recorded yet</div>';
+    } else {
+      sessEl.innerHTML = data.sessions.map(s => `
+        <div class="hist-row">
+          <span class="hist-id">${s.id.slice(0,8).toUpperCase()}</span>
+          <div>
+            <div class="hist-dest">${s.total_orders} orders dispatched</div>
+            <div class="hist-meta">${s.created_at.replace('T',' ').slice(0,19)} UTC</div>
+          </div>
+          <span class="hist-meta">${s.total_trips} trips</span>
+          <span></span>
+        </div>
+      `).join('');
+    }
+  } catch(e) {
+    el('historyTrips').innerHTML='<div class="hist-empty">Error loading history</div>';
+  }
 }
 </script>
 </body>
